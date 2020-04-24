@@ -13,7 +13,7 @@ using namespace Eigen;
 int main(int argc, char **argv) {
     init(argc, argv, "planner");
     NodeHandle node_handle;
-    Publisher rviz = node_handle.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+    Publisher rviz = node_handle.advertise<visualization_msgs::Marker>("visualization_marker", 10000);
     Rate rate(10);
 
     ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5), 0.5);
