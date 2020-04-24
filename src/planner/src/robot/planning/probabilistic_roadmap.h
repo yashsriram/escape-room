@@ -2,16 +2,28 @@
 #define ESCAPE_ROOM_PROBABILISTIC_ROADMAP_H
 
 #include <vector>
+#include <eigen3/Eigen/Dense>
 #include "milestone.h"
 
 using namespace std;
 using namespace ros;
+using namespace Eigen;
 
 struct ProbabilisticRoadmap {
-    const Publisher& rviz;
+    const Publisher &rviz;
     vector<Milestone> milestones;
 
-    explicit ProbabilisticRoadmap(const Publisher& rviz): rviz(rviz) {}
+    explicit ProbabilisticRoadmap(const Publisher &rviz, int num_milestones, Vector2f min_corner, Vector2f max_corner)
+            : rviz(rviz) {
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_real_distribution<> x(min_corner[0], max_corner[0]);
+        uniform_real_distribution<> y(min_corner[1], max_corner[1]);
+        // Create the vertices for the points and lines
+        for (uint32_t i = 0; i < num_milestones; ++i) {
+            milestones.emplace_back(Milestone(x(gen), y(gen), true));
+        }
+    }
 
     void draw() {
         visualization_msgs::Marker points;

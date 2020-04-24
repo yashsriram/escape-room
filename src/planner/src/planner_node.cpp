@@ -7,6 +7,7 @@
 
 using namespace std;
 using namespace ros;
+using namespace Eigen;
 
 int main(int argc, char **argv) {
     init(argc, argv, "points_and_lines");
@@ -14,15 +15,7 @@ int main(int argc, char **argv) {
     Publisher rviz = node_handle.advertise<visualization_msgs::Marker>("visualization_marker", 10);
     Rate rate(10);
 
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_real_distribution<> dis(-5, 5);
-
-    ProbabilisticRoadmap prm(rviz);
-    // Create the vertices for the points and lines
-    for (uint32_t i = 0; i < 1000; ++i) {
-        prm.milestones.emplace_back(Milestone(dis(gen), dis(gen), true));
-    }
+    ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5));
 
     while (ros::ok()) {
         /* Update */
