@@ -9,7 +9,7 @@ using namespace Eigen;
 struct Milestone {
     const Vector2f position;
     const bool isOutsideObstacle;
-    const vector<Milestone> neighbours;
+    vector<Milestone> neighbours;
 
 public:
     Milestone(float x, float y, bool isOutsideObstacle) : position(x, y), isOutsideObstacle(isOutsideObstacle) {}

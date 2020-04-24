@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <eigen3/Eigen/Dense>
+#include <ros/ros.h>
 #include "milestone.h"
 
 using namespace std;
