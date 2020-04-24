@@ -9,7 +9,7 @@ struct ConfigurationSpace {
 	explicit ConfigurationSpace(const Room& room): room(room) {}
 
 	bool does_intersect(const Vector2f& end1, const Vector2f& end2) const {
-		return true;
+		return false;
 	}
 };
 

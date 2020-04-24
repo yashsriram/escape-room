@@ -26,13 +26,12 @@ int main(int argc, char **argv) {
     ConfigurationSpace cs(room);
 
     ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5), 0.5, cs);
-    // PRM does not change so drawing once is enough
-    prm.draw_milestones();
-    prm.draw_links();
     while (ros::ok()) {
         /* Update */
 
         /* Draw */
+        prm.draw_milestones();
+        prm.draw_links();
         room.draw();
 
         /* Sleep */
