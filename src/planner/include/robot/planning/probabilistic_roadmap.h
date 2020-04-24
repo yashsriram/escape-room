@@ -7,6 +7,7 @@
 #include <eigen3/Eigen/Dense>
 #include <ros/ros.h>
 #include "milestone.h"
+#include "robot/sensing/configuration_space.h"
 
 using namespace std;
 using namespace ros;
@@ -16,8 +17,12 @@ struct ProbabilisticRoadmap {
     const Publisher &rviz;
     vector<Milestone> milestones;
 
-    explicit ProbabilisticRoadmap(const Publisher &rviz, int num_milestones, Vector2f min_corner, Vector2f max_corner,
-                                  float max_edge_len)
+    explicit ProbabilisticRoadmap(const Publisher &rviz,
+                                  int num_milestones,
+                                  Vector2f min_corner,
+                                  Vector2f max_corner,
+                                  float max_edge_len,
+                                  const ConfigurationSpace& cs)
             : rviz(rviz) {
         random_device rd;
         mt19937 gen(rd());
@@ -33,11 +38,19 @@ struct ProbabilisticRoadmap {
             for (int j = i + 1; j < milestones.size(); j++) {
                 Milestone &v1 = milestones[i];
                 Milestone &v2 = milestones[j];
-                if ((v1.position - v2.position).norm() <= max_edge_len) {
-                    v1.add_neighbour(v2.id);
-                    v2.add_neighbour(v1.id);
-                    num_edges++;
+                // Too far off?
+                if ((v1.position - v2.position).norm() > max_edge_len) {
+                    continue;
                 }
+                // Intersects with walls?
+                bool does_intersect = cs.does_intersect(v1.position, v2.position);
+                if (does_intersect) {
+                    continue;
+                }
+                // All okay
+                v1.add_neighbour(v2.id);
+                v2.add_neighbour(v1.id);
+                num_edges++;
             }
         }
         cout << "# edges = " << num_edges << endl;

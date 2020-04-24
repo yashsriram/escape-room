@@ -12,8 +12,7 @@ struct LineSegmentObstacle {
     Vector2f point1;
     Vector2f point2;
 
-    explicit LineSegmentObstacle(Vector2f point1, Vector2f point2)
-            : point1(point1), point2(point2) {}
+    explicit LineSegmentObstacle(Vector2f point1, Vector2f point2): point1(point1), point2(point2) {}
 
 };
 
