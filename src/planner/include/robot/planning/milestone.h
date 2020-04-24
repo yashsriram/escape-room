@@ -7,11 +7,12 @@ using namespace std;
 using namespace Eigen;
 
 struct Milestone {
+    const int id;
     const Vector2f position;
-    vector<Milestone> neighbours;
+    vector<int> neighbourIds;
 
 public:
-    Milestone(float x, float y) : position(x, y) {}
+    Milestone(int id, float x, float y) : id(id), position(x, y) {}
 };
 
 #endif

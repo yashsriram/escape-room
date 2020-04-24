@@ -24,7 +24,7 @@ struct ProbabilisticRoadmap {
         uniform_real_distribution<> y(min_corner[1], max_corner[1]);
         // Create the vertices for the points and lines
         for (uint32_t i = 0; i < num_milestones; ++i) {
-            milestones.emplace_back(Milestone(x(gen), y(gen)));
+            milestones.emplace_back(Milestone((i + 1), x(gen), y(gen)));
         }
     }
 
