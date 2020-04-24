@@ -18,10 +18,10 @@ int main(int argc, char **argv) {
 
     ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5));
     Room room(rviz);
-    room.addWall(Vector2f(3, 3), Vector2f(3, -3));
-    room.addWall(Vector2f(3, 3), Vector2f(-3, 3));
-    room.addWall(Vector2f(-3, 3), Vector2f(-3, -3));
-    room.addWall(Vector2f(-3, -3), Vector2f(1, -3));
+    room.add_wall(Vector2f(3, 3), Vector2f(3, -3));
+    room.add_wall(Vector2f(3, 3), Vector2f(-3, 3));
+    room.add_wall(Vector2f(-3, 3), Vector2f(-3, -3));
+    room.add_wall(Vector2f(-3, -3), Vector2f(1, -3));
 
     while (ros::ok()) {
         /* Update */
