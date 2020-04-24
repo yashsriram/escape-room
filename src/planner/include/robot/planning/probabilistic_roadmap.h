@@ -1,7 +1,9 @@
 #ifndef ESCAPE_ROOM_PROBABILISTIC_ROADMAP_H
 #define ESCAPE_ROOM_PROBABILISTIC_ROADMAP_H
 
+#include <random>
 #include <vector>
+#include <visualization_msgs/Marker.h>
 #include <eigen3/Eigen/Dense>
 #include <ros/ros.h>
 #include "milestone.h"
@@ -22,7 +24,7 @@ struct ProbabilisticRoadmap {
         uniform_real_distribution<> y(min_corner[1], max_corner[1]);
         // Create the vertices for the points and lines
         for (uint32_t i = 0; i < num_milestones; ++i) {
-            milestones.emplace_back(Milestone(x(gen), y(gen), true));
+            milestones.emplace_back(Milestone(x(gen), y(gen)));
         }
     }
 
@@ -35,10 +37,8 @@ struct ProbabilisticRoadmap {
         points.type = visualization_msgs::Marker::POINTS;
         points.action = visualization_msgs::Marker::ADD;
         points.pose.orientation.w = 1.0;
-        // POINTS markers use x and y scale for width/height respectively
         points.scale.x = 0.02;
         points.scale.y = 0.02;
-        // Points are green
         points.color.r = points.color.g = points.color.b = 1.0f;
         points.color.a = 1.0;
 

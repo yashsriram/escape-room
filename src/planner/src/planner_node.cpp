@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <visualization_msgs/Marker.h>
 
-#include <random>
+#include "robot/sensing/room.h"
 #include "robot/planning/milestone.h"
 #include "robot/planning/probabilistic_roadmap.h"
 #include "robot/sensing/line_segment_obstacle.h"
@@ -17,14 +17,18 @@ int main(int argc, char **argv) {
     Rate rate(10);
 
     ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5));
-    LineSegmentObstacle obstacle(rviz, Vector2f(0, 0), Vector2f(5, 5));
+    Room room(rviz);
+    room.addWall(Vector2f(3, 3), Vector2f(3, -3));
+    room.addWall(Vector2f(3, 3), Vector2f(-3, 3));
+    room.addWall(Vector2f(-3, 3), Vector2f(-3, -3));
+    room.addWall(Vector2f(-3, -3), Vector2f(1, -3));
 
     while (ros::ok()) {
         /* Update */
 
         /* Draw */
         prm.draw();
-        obstacle.draw();
+        room.draw();
 
         /* Sleep */
         rate.sleep();

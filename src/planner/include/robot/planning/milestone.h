@@ -8,11 +8,10 @@ using namespace Eigen;
 
 struct Milestone {
     const Vector2f position;
-    const bool isOutsideObstacle;
     vector<Milestone> neighbours;
 
 public:
-    Milestone(float x, float y, bool isOutsideObstacle) : position(x, y), isOutsideObstacle(isOutsideObstacle) {}
+    Milestone(float x, float y) : position(x, y) {}
 };
 
 #endif
