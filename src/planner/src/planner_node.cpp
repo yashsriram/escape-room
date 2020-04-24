@@ -23,11 +23,13 @@ int main(int argc, char **argv) {
     room.add_wall(Vector2f(-3, 3), Vector2f(-3, -3));
     room.add_wall(Vector2f(-3, -3), Vector2f(1, -3));
 
+    // PRM does not change so drawing once is enough
+    prm.draw_milestones();
+    prm.draw_links();
     while (ros::ok()) {
         /* Update */
 
         /* Draw */
-        prm.draw();
         room.draw();
 
         /* Sleep */

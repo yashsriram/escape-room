@@ -43,26 +43,19 @@ struct ProbabilisticRoadmap {
         cout << "# edges = " << num_edges << endl;
     }
 
-    void draw() {
+    void draw_milestones() {
         visualization_msgs::Marker milestone_markers;
-        visualization_msgs::Marker link_markers;
-        // Common properties
-        milestone_markers.header.frame_id = link_markers.header.frame_id = "/map";
-        milestone_markers.header.stamp = link_markers.header.stamp = ros::Time::now();
-        milestone_markers.ns = link_markers.ns = "milestones_and_links";
-        milestone_markers.id = link_markers.id = 0;
-        milestone_markers.action = link_markers.action = visualization_msgs::Marker::ADD;
-        milestone_markers.pose.orientation.w = link_markers.pose.orientation.w = 1.0;
-        milestone_markers.color.a = link_markers.color.a = 1.0;
-
-        // Discriminating properties
+        milestone_markers.header.frame_id = "/map";
+        milestone_markers.header.stamp = ros::Time::now();
+        milestone_markers.ns = "milestones";
+        milestone_markers.id = 0;
+        milestone_markers.action = visualization_msgs::Marker::ADD;
+        milestone_markers.pose.orientation.w = 1.0;
+        milestone_markers.color.a = 1.0;
         milestone_markers.type = visualization_msgs::Marker::POINTS;
-        link_markers.type = visualization_msgs::Marker::LINE_LIST;
-        milestone_markers.scale.x = 0.02;
-        milestone_markers.scale.y = 0.02;
-        link_markers.scale.x = 0.02;
+        milestone_markers.scale.x = 0.01;
+        milestone_markers.scale.y = 0.01;
         milestone_markers.color.r = milestone_markers.color.g = milestone_markers.color.b = 1.0f;
-        link_markers.color.r = link_markers.color.g = link_markers.color.b = 1.0f;
 
         // Milestones
         for (const auto &milestone : milestones) {
@@ -71,6 +64,22 @@ struct ProbabilisticRoadmap {
             p.y = milestone.position[1];
             milestone_markers.points.emplace_back(p);
         }
+
+        rviz.publish(milestone_markers);
+    }
+
+    void draw_links() {
+        visualization_msgs::Marker link_markers;
+        link_markers.header.frame_id = "/map";
+        link_markers.header.stamp = ros::Time::now();
+        link_markers.ns = "links";
+        link_markers.id = 0;
+        link_markers.action = visualization_msgs::Marker::ADD;
+        link_markers.pose.orientation.w = 1.0;
+        link_markers.color.a = 1.0;
+        link_markers.type = visualization_msgs::Marker::LINE_LIST;
+        link_markers.scale.x = 0.01;
+        link_markers.color.r = link_markers.color.g = link_markers.color.b = 1.0f;
 
         // Links
         for (const auto &milestone : milestones) {
@@ -85,7 +94,6 @@ struct ProbabilisticRoadmap {
             }
         }
 
-        rviz.publish(milestone_markers);
         rviz.publish(link_markers);
     }
 };
