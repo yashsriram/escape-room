@@ -16,40 +16,77 @@ struct ProbabilisticRoadmap {
     const Publisher &rviz;
     vector<Milestone> milestones;
 
-    explicit ProbabilisticRoadmap(const Publisher &rviz, int num_milestones, Vector2f min_corner, Vector2f max_corner)
+    explicit ProbabilisticRoadmap(const Publisher &rviz, int num_milestones, Vector2f min_corner, Vector2f max_corner,
+                                  float max_edge_len)
             : rviz(rviz) {
         random_device rd;
         mt19937 gen(rd());
         uniform_real_distribution<> x(min_corner[0], max_corner[0]);
         uniform_real_distribution<> y(min_corner[1], max_corner[1]);
-        // Create the vertices for the points and lines
+        // Create milestones
         for (uint32_t i = 0; i < num_milestones; ++i) {
             milestones.emplace_back(Milestone((i + 1), x(gen), y(gen)));
         }
+        // Create links
+        int num_edges = 0;
+        for (int i = 0; i < milestones.size() - 1; ++i) {
+            for (int j = i + 1; j < milestones.size(); j++) {
+                Milestone &v1 = milestones[i];
+                Milestone &v2 = milestones[j];
+                if ((v1.position - v2.position).norm() <= max_edge_len) {
+                    v1.add_neighbour(v2.id);
+                    v2.add_neighbour(v1.id);
+                    num_edges++;
+                }
+            }
+        }
+        cout << "# edges = " << num_edges << endl;
     }
 
     void draw() {
-        visualization_msgs::Marker points;
-        points.header.frame_id = "/map";
-        points.header.stamp = ros::Time::now();
-        points.ns = "milestones";
-        points.id = 0;
-        points.type = visualization_msgs::Marker::POINTS;
-        points.action = visualization_msgs::Marker::ADD;
-        points.pose.orientation.w = 1.0;
-        points.scale.x = 0.02;
-        points.scale.y = 0.02;
-        points.color.r = points.color.g = points.color.b = 1.0f;
-        points.color.a = 1.0;
+        visualization_msgs::Marker milestone_markers;
+        visualization_msgs::Marker link_markers;
+        // Common properties
+        milestone_markers.header.frame_id = link_markers.header.frame_id = "/map";
+        milestone_markers.header.stamp = link_markers.header.stamp = ros::Time::now();
+        milestone_markers.ns = link_markers.ns = "milestones_and_links";
+        milestone_markers.id = link_markers.id = 0;
+        milestone_markers.action = link_markers.action = visualization_msgs::Marker::ADD;
+        milestone_markers.pose.orientation.w = link_markers.pose.orientation.w = 1.0;
+        milestone_markers.color.a = link_markers.color.a = 1.0;
 
-        for (int i = 0; i < milestones.size(); ++i) {
+        // Discriminating properties
+        milestone_markers.type = visualization_msgs::Marker::POINTS;
+        link_markers.type = visualization_msgs::Marker::LINE_LIST;
+        milestone_markers.scale.x = 0.02;
+        milestone_markers.scale.y = 0.02;
+        link_markers.scale.x = 0.02;
+        milestone_markers.color.r = milestone_markers.color.g = milestone_markers.color.b = 1.0f;
+        link_markers.color.r = link_markers.color.g = link_markers.color.b = 1.0f;
+
+        // Milestones
+        for (const auto &milestone : milestones) {
             geometry_msgs::Point p;
-            p.x = milestones[i].position[0];
-            p.y = milestones[i].position[1];
-            points.points.emplace_back(p);
+            p.x = milestone.position[0];
+            p.y = milestone.position[1];
+            milestone_markers.points.emplace_back(p);
         }
 
-        rviz.publish(points);
+        // Links
+        for (const auto &milestone : milestones) {
+            for (auto neighbourId: milestone.neighbourIds) {
+                geometry_msgs::Point p;
+                p.x = milestone.position[0];
+                p.y = milestone.position[1];
+                link_markers.points.emplace_back(p);
+                p.x = milestones[neighbourId].position[0];
+                p.y = milestones[neighbourId].position[1];
+                link_markers.points.emplace_back(p);
+            }
+        }
+
+        rviz.publish(milestone_markers);
+        rviz.publish(link_markers);
     }
 };
 

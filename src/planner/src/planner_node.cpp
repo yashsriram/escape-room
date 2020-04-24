@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
     Publisher rviz = node_handle.advertise<visualization_msgs::Marker>("visualization_marker", 10);
     Rate rate(10);
 
-    ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5));
+    ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5), 0.5);
     Room room(rviz);
     room.add_wall(Vector2f(3, 3), Vector2f(3, -3));
     room.add_wall(Vector2f(3, 3), Vector2f(-3, 3));
