@@ -25,13 +25,13 @@ int main(int argc, char **argv) {
 
     ConfigurationSpace cs(room);
 
-    ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5), 0.5, cs);
+    ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5), 0.2, cs);
     while (ros::ok()) {
         /* Update */
 
         /* Draw */
-        prm.draw_milestones();
         prm.draw_links();
+        prm.draw_milestones();
         room.draw();
 
         /* Sleep */
