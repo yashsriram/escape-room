@@ -2,14 +2,19 @@
 #define ESCAPE_ROOM_CONFIGURATIONSPACE_H
 
 #include <eigen3/Eigen/Dense>
+#include <ros/ros.h>
+#include "robot/sensing/line_segment.h"
 
+using namespace std;
 using namespace ros;
 using namespace Eigen;
 
 struct ConfigurationSpace {
+	const Publisher& rviz;
 	const Room& room;
+	vector<LineSegment> obstacles;
 
-	explicit ConfigurationSpace(const Room& room): room(room) {}
+	explicit ConfigurationSpace(const Publisher &rviz, const Room& room): rviz(rviz), room(room) {}
 
 	bool does_intersect(const Vector2f& link1, const Vector2f& link2) const {
 		for (const auto wall : room.walls) {
@@ -81,6 +86,33 @@ struct ConfigurationSpace {
 			return true;
 		}
 		return false;
+	}
+
+	void draw() {
+		visualization_msgs::Marker line;
+        line.header.frame_id = "/map";
+        line.ns = "obstacles";
+        line.header.stamp = ros::Time::now();
+        line.id = 0;
+        line.type = visualization_msgs::Marker::LINE_LIST;
+        line.action = visualization_msgs::Marker::ADD;
+        line.pose.orientation.w = 1.0;
+        line.scale.x = 0.02;
+        line.color.r = 1.0f;
+        line.color.b = 1.0f;
+        line.color.a = 1.0;
+
+        for (int i = 0; i < obstacles.size(); ++i) {
+            geometry_msgs::Point p;
+            p.x = obstacles[i].point1[0];
+            p.y = obstacles[i].point1[1];
+            line.points.emplace_back(p);
+            p.x = obstacles[i].point2[0];
+            p.y = obstacles[i].point2[1];
+            line.points.emplace_back(p);
+        }
+
+        rviz.publish(line);
 	}
 };
 

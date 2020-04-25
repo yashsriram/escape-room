@@ -5,7 +5,6 @@
 #include "robot/sensing/configuration_space.h"
 #include "robot/planning/milestone.h"
 #include "robot/planning/probabilistic_roadmap.h"
-#include "robot/sensing/line_segment_obstacle.h"
 
 using namespace std;
 using namespace ros;
@@ -23,9 +22,9 @@ int main(int argc, char **argv) {
     room.add_wall(Vector2f(-3, 3), Vector2f(-3, -3));
     room.add_wall(Vector2f(-3, -3), Vector2f(0, -3));
 
-    ConfigurationSpace cs(room);
+    ConfigurationSpace cs(rviz, room);
 
-    ProbabilisticRoadmap prm(rviz, 2000, Vector2f(-5, -5), Vector2f(5, 5), 0.5, cs);
+    ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5), 0.5, cs);
     while (ros::ok()) {
         /* Update */
 
@@ -33,6 +32,7 @@ int main(int argc, char **argv) {
         prm.draw_links();
         prm.draw_milestones();
         room.draw();
+        cs.draw();
 
         /* Sleep */
         rate.sleep();
