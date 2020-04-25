@@ -5,6 +5,7 @@
 #include "robot/sensing/configuration_space.h"
 #include "robot/planning/milestone.h"
 #include "robot/planning/probabilistic_roadmap.h"
+#include "robot/acting/differential_drive_agent.h"
 
 using namespace std;
 using namespace ros;
@@ -22,7 +23,9 @@ int main(int argc, char **argv) {
     room.add_wall(Vector2f(-3, 3), Vector2f(-3, -3));
     room.add_wall(Vector2f(-3, -3), Vector2f(0, -3));
 
-    ConfigurationSpace cs(rviz, room, 0.5);
+    DifferentialDriveAgent turtle(rviz, Vector2f(0.0, 0.0), 0.0, 0.4);
+
+    ConfigurationSpace cs(rviz, room, turtle.radius + 0.1);
 
     ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5), 0.5, cs);
     while (ros::ok()) {
@@ -33,6 +36,7 @@ int main(int argc, char **argv) {
         prm.draw_milestones();
         room.draw();
         cs.draw();
+        turtle.draw();
 
         /* Sleep */
         rate.sleep();

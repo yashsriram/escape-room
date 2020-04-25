@@ -107,7 +107,7 @@ struct ConfigurationSpace {
 	void draw() {
 		visualization_msgs::Marker line;
         line.header.frame_id = "/map";
-        line.ns = "obstacles";
+        line.ns = "cs_obstacles";
         line.header.stamp = ros::Time::now();
         line.id = 0;
         line.type = visualization_msgs::Marker::LINE_LIST;
