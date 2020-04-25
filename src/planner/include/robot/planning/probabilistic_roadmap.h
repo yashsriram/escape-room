@@ -95,11 +95,9 @@ struct ProbabilisticRoadmap {
         milestone_markers.id = 0;
         milestone_markers.action = visualization_msgs::Marker::ADD;
         milestone_markers.pose.orientation.w = 1.0;
-        milestone_markers.color.a = 1.0;
         milestone_markers.type = visualization_msgs::Marker::POINTS;
-        milestone_markers.scale.x = 0.01;
-        milestone_markers.scale.y = 0.01;
-        milestone_markers.color.r = milestone_markers.color.g = milestone_markers.color.b = 1.0f;
+        milestone_markers.scale.x = 0.02;
+        milestone_markers.scale.y = 0.02;
 
         // Milestones
         for (const auto &milestone : milestones) {
@@ -107,6 +105,12 @@ struct ProbabilisticRoadmap {
             p.x = milestone.position[0];
             p.y = milestone.position[1];
             milestone_markers.points.push_back(p);
+            std_msgs::ColorRGBA c;
+            c.a = 1.0;
+            c.r = milestone.color[0];
+            c.g = milestone.color[1];
+            c.b = milestone.color[2];
+            milestone_markers.colors.push_back(c);
         }
 
         rviz.publish(milestone_markers);
