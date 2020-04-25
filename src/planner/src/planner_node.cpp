@@ -21,11 +21,11 @@ int main(int argc, char **argv) {
     room.add_wall(Vector2f(3, 3), Vector2f(3, -3));
     room.add_wall(Vector2f(3, 3), Vector2f(-3, 3));
     room.add_wall(Vector2f(-3, 3), Vector2f(-3, -3));
-    room.add_wall(Vector2f(-3, -3), Vector2f(1, -3));
+    room.add_wall(Vector2f(-3, -3), Vector2f(0, -3));
 
     ConfigurationSpace cs(room);
 
-    ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5), 0.2, cs);
+    ProbabilisticRoadmap prm(rviz, 2000, Vector2f(-5, -5), Vector2f(5, 5), 0.5, cs);
     while (ros::ok()) {
         /* Update */
 

@@ -19,48 +19,47 @@ struct ProbabilisticRoadmap {
 
     explicit ProbabilisticRoadmap(const Publisher &rviz,
                                   int num_milestones,
-                                  Vector2f min_corner,
-                                  Vector2f max_corner,
+                                  const Vector2f& min_corner,
+                                  const Vector2f& max_corner,
                                   float max_edge_len,
-                                  const ConfigurationSpace& cs)
-            : rviz(rviz) {
+                                  const ConfigurationSpace& cs) : rviz(rviz) {
         random_device rd;
         mt19937 gen(rd());
         uniform_real_distribution<> x(min_corner[0], max_corner[0]);
         uniform_real_distribution<> y(min_corner[1], max_corner[1]);
         // Create milestones
         for (uint32_t i = 0; i < num_milestones; ++i) {
-            milestones.emplace_back(Milestone((i + 1), x(gen), y(gen)));
+            milestones.push_back(Milestone(i, x(gen), y(gen)));
         }
         // Create links
-        int num_edges = 0;
+        int num_links = 0;
         for (int i = 0; i < milestones.size() - 1; ++i) {
             for (int j = i + 1; j < milestones.size(); j++) {
                 Milestone &v1 = milestones[i];
                 Milestone &v2 = milestones[j];
-                // Too far off?
+                // Too far off
                 if ((v1.position - v2.position).norm() > max_edge_len) {
                     continue;
                 }
-                // Intersects with walls?
+                // Intersects with walls
                 bool does_intersect = cs.does_intersect(v1.position, v2.position);
                 if (does_intersect) {
                     continue;
                 }
-                // All okay
+                // Add link if all okay
                 v1.add_neighbour(v2.id);
                 v2.add_neighbour(v1.id);
-                num_edges++;
+                num_links++;
             }
         }
-        cout << "# edges = " << num_edges << endl;
+        cout << "# links = " << num_links << endl;
     }
 
     void draw_milestones() {
         visualization_msgs::Marker milestone_markers;
         milestone_markers.header.frame_id = "/map";
-        milestone_markers.header.stamp = ros::Time::now();
         milestone_markers.ns = "milestones";
+        milestone_markers.header.stamp = ros::Time::now();
         milestone_markers.id = 0;
         milestone_markers.action = visualization_msgs::Marker::ADD;
         milestone_markers.pose.orientation.w = 1.0;
@@ -75,7 +74,7 @@ struct ProbabilisticRoadmap {
             geometry_msgs::Point p;
             p.x = milestone.position[0];
             p.y = milestone.position[1];
-            milestone_markers.points.emplace_back(p);
+            milestone_markers.points.push_back(p);
         }
 
         rviz.publish(milestone_markers);
@@ -84,8 +83,8 @@ struct ProbabilisticRoadmap {
     void draw_links() {
         visualization_msgs::Marker link_markers;
         link_markers.header.frame_id = "/map";
-        link_markers.header.stamp = ros::Time::now();
         link_markers.ns = "links";
+        link_markers.header.stamp = ros::Time::now();
         link_markers.id = 0;
         link_markers.action = visualization_msgs::Marker::ADD;
         link_markers.pose.orientation.w = 1.0;
@@ -97,13 +96,14 @@ struct ProbabilisticRoadmap {
         // Links
         for (const auto &milestone : milestones) {
             for (auto neighbourId: milestone.neighbourIds) {
-                geometry_msgs::Point p;
-                p.x = milestone.position[0];
-                p.y = milestone.position[1];
-                link_markers.points.emplace_back(p);
-                p.x = milestones[neighbourId].position[0];
-                p.y = milestones[neighbourId].position[1];
-                link_markers.points.emplace_back(p);
+                geometry_msgs::Point p1;
+                p1.x = milestone.position[0];
+                p1.y = milestone.position[1];
+                link_markers.points.push_back(p1);
+                geometry_msgs::Point p2;
+                p2.x = milestones[neighbourId].position[0];
+                p2.y = milestones[neighbourId].position[1];
+                link_markers.points.push_back(p2);
             }
         }
 

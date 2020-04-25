@@ -16,14 +16,14 @@ struct Room {
     explicit Room(const Publisher& rviz) : rviz(rviz) {}
 
     void add_wall(Vector2f point1, Vector2f point2) {
-        walls.emplace_back(LineSegmentObstacle(point1, point2));
+        walls.push_back(LineSegmentObstacle(point1, point2));
     }
 
     void draw() {
         visualization_msgs::Marker line;
         line.header.frame_id = "/map";
-        line.header.stamp = ros::Time::now();
         line.ns = "obstacles";
+        line.header.stamp = ros::Time::now();
         line.id = 0;
         line.type = visualization_msgs::Marker::LINE_LIST;
         line.action = visualization_msgs::Marker::ADD;

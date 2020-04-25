@@ -15,7 +15,7 @@ public:
     Milestone(int id, float x, float y) : id(id), position(x, y) {}
 
     void add_neighbour(int id) {
-        neighbourIds.emplace_back(id);
+        neighbourIds.push_back(id);
     }
 };
 
