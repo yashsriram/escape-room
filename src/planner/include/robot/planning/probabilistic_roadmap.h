@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 #include "milestone.h"
 #include "robot/sensing/configuration_space.h"
+#include <queue>
 
 using namespace std;
 using namespace ros;
@@ -55,7 +56,7 @@ struct ProbabilisticRoadmap {
         cout << "# links = " << num_links << endl;
     }
 
-    void add_milestone(Vector2f position, float edge_len, const ConfigurationSpace& cs) {
+    int add_milestone(Vector2f position, float edge_len, const ConfigurationSpace& cs) {
         // Get the id of new milestone
         int id = milestones.size();
         // Add milestone
@@ -77,14 +78,65 @@ struct ProbabilisticRoadmap {
             new_milestone.add_neighbour(neighbour.id);
             neighbour.add_neighbour(new_milestone.id);
         }
+        return id;
     }
 
-    void search(Vector2f start, Vector2f finish, float edge_len, const ConfigurationSpace& cs) {
+    void add_to_fringe(queue<int>& fringe, Milestone& current, Milestone& next) {
+        next.distance_from_start = current.distance_from_start + (next.position - current.position).norm();
+        next.is_explored = true;
+        next.path_from_start = current.path_from_start;
+        next.path_from_start.push_back(next.id);
+        next.color = Vector3f(0, 1, 0);
+        fringe.push(next.id);
+    }
+
+    vector<Vector2f> bfs(Vector2f start, Vector2f finish, float edge_len, const ConfigurationSpace& cs) {
         // Add these to PRM
-        add_milestone(start, edge_len, cs);
-        add_milestone(finish, edge_len, cs);
-        // Do A*
-        // Return path
+        int start_id = add_milestone(start, edge_len, cs);
+        int finish_id = add_milestone(finish, edge_len, cs);
+
+        // Reset search state of all milestones
+        for (auto& milestone: milestones) {
+            milestone.reset_search_state();
+        }
+
+        // Do A* and return path
+        int num_vertices_explored = 0;
+
+        queue<int> fringe;
+        // Add start to fringe
+        add_to_fringe(fringe, milestones[start_id], milestones[start_id]);
+        while (fringe.size() > 0) {
+            // Pop one vertex
+            int current_id = fringe.front();
+            Milestone& current = milestones[current_id];
+            fringe.pop();
+            num_vertices_explored++;
+            // Check if finish
+            if (current_id == finish_id) {
+                cout << "Reached finish, # vertices explored: " <<  num_vertices_explored << endl;
+                cout << "path size: " << current.path_from_start.size() << endl;
+                vector<Vector2f> path;
+                for (int id : current.path_from_start) {
+                    path.push_back(milestones[id].position);
+                }
+                return path;
+            }
+            // Mark this vertex as explored
+            current.color = Vector3f(1, 0, 0);
+            // Update fringe
+            for (int neighbourId : current.neighbourIds) {
+                Milestone& neighbour = milestones[neighbourId];
+                if (!neighbour.is_explored) {
+                    add_to_fringe(fringe, current, neighbour);
+                }
+            }
+        }
+
+        cout << "Could not reach finish, # vertices explored: " << num_vertices_explored << endl;
+        vector<Vector2f> path;
+        path.push_back(milestones[start_id].position);
+        return path;
     }
 
     void draw_milestones() {
@@ -96,8 +148,8 @@ struct ProbabilisticRoadmap {
         milestone_markers.action = visualization_msgs::Marker::ADD;
         milestone_markers.pose.orientation.w = 1.0;
         milestone_markers.type = visualization_msgs::Marker::POINTS;
-        milestone_markers.scale.x = 0.02;
-        milestone_markers.scale.y = 0.02;
+        milestone_markers.scale.x = 0.05;
+        milestone_markers.scale.y = 0.05;
 
         // Milestones
         for (const auto &milestone : milestones) {

@@ -23,7 +23,7 @@ struct Milestone {
     bool is_explored = false;
 	float distance_from_start = 0;
 	float distance_to_finish = 0;
-    vector<Vector2f> path_from_start;
+    vector<int> path_from_start;
     Vector3f color;
 
     void reset_search_state() {
