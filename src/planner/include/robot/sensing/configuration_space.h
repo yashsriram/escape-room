@@ -11,13 +11,29 @@ using namespace Eigen;
 
 struct ConfigurationSpace {
 	const Publisher& rviz;
-	const Room& room;
 	vector<LineSegment> obstacles;
 
-	explicit ConfigurationSpace(const Publisher &rviz, const Room& room): rviz(rviz), room(room) {}
+	explicit ConfigurationSpace(const Publisher &rviz, const Room& room, float clearance): rviz(rviz) {
+		for (const auto wall : room.walls) {
+			const Vector2f& obs1 = wall.point1;
+			const Vector2f& obs2 = wall.point2;
+			Vector2f wall_parallel = (obs2 - obs1).normalized();
+			Matrix2f rot90CCW;
+			rot90CCW <<	0, -1, 1, 0;
+			Vector2f wall_perpendicular = rot90CCW * wall_parallel;
+			Vector2f top_right = obs2 + clearance * wall_parallel + clearance * wall_perpendicular;
+			Vector2f bottom_right = obs2 + clearance * wall_parallel - clearance * wall_perpendicular;
+			Vector2f top_left = obs1 - clearance * wall_parallel + clearance * wall_perpendicular;
+			Vector2f bottom_left = obs1 - clearance * wall_parallel - clearance * wall_perpendicular;
+			obstacles.push_back(LineSegment(top_left, top_right));
+			obstacles.push_back(LineSegment(bottom_left, bottom_right));
+			obstacles.push_back(LineSegment(top_left, bottom_left));
+			obstacles.push_back(LineSegment(top_right, bottom_right));
+		}
+	}
 
 	bool does_intersect(const Vector2f& link1, const Vector2f& link2) const {
-		for (const auto wall : room.walls) {
+		for (const auto wall : obstacles) {
 			const Vector2f& obs1 = wall.point1;
 			const Vector2f& obs2 = wall.point2;
 			// A
