@@ -41,7 +41,7 @@ struct ProbabilisticRoadmap {
                 if ((v1.position - v2.position).norm() > max_edge_len) {
                     continue;
                 }
-                // Intersects with walls
+                // Intersects with obstacles
                 bool does_intersect = cs.does_intersect(v1.position, v2.position);
                 if (does_intersect) {
                     continue;
@@ -53,6 +53,38 @@ struct ProbabilisticRoadmap {
             }
         }
         cout << "# links = " << num_links << endl;
+    }
+
+    void add_milestone(Vector2f position, float edge_len, const ConfigurationSpace& cs) {
+        // Get the id of new milestone
+        int id = milestones.size();
+        // Add milestone
+        milestones.push_back(Milestone(id, position[0], position[1]));
+        Milestone& new_milestone = milestones[milestones.size() - 1];
+        // Add links to neighbours properly
+        for (int i = 0; i < milestones.size() - 1; ++i) {
+            Milestone& neighbour = milestones[i];
+            // Too far off
+            if ((new_milestone.position - neighbour.position).norm() > edge_len) {
+                continue;
+            }
+            // Intersects with obstacles
+            bool does_intersect = cs.does_intersect(new_milestone.position, neighbour.position);
+            if (does_intersect) {
+                continue;
+            }
+            // Add link if all okay
+            new_milestone.add_neighbour(neighbour.id);
+            neighbour.add_neighbour(new_milestone.id);
+        }
+    }
+
+    void search(Vector2f start, Vector2f finish, float edge_len, const ConfigurationSpace& cs) {
+        // Add these to PRM
+        add_milestone(start, edge_len, cs);
+        add_milestone(finish, edge_len, cs);
+        // Do A*
+        // Return path
     }
 
     void draw_milestones() {

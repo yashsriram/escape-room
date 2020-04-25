@@ -28,6 +28,8 @@ int main(int argc, char **argv) {
     ConfigurationSpace cs(rviz, room, turtle.radius + 0.1);
 
     ProbabilisticRoadmap prm(rviz, 1000, Vector2f(-5, -5), Vector2f(5, 5), 0.5, cs);
+    prm.search(Vector2f(10.0, 0.0), Vector2f(0, 10.0), 7, cs);
+
     while (ros::ok()) {
         /* Update */
 
