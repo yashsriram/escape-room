@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
     room.add_wall(Vector2f(-3, -3), Vector2f(1, -3));
 
     Publisher gazebo = node_handle.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state", 10000);
-    DifferentialDriveAgent turtle(rviz, gazebo, Vector2f(0.0, 0.0), PI / 4, 0.4, 5, 5);
+    DifferentialDriveAgent turtle(rviz, gazebo, Vector2f(0.0, 0.0), PI / 4, 0.4, 2.5, 10);
 
     ConfigurationSpace cs(rviz, room, turtle.radius + 0.1);
 
@@ -46,9 +46,9 @@ int main(int argc, char **argv) {
         prm.draw_milestones();
         room.draw();
         cs.draw();
-        turtle.draw_rviz();
-        turtle.draw_path();
-        // turtle.draw_gazebo();
+        // turtle.draw_rviz();
+        // turtle.draw_path();
+        turtle.draw_gazebo();
 
         /* Sleep */
         rate.sleep();
