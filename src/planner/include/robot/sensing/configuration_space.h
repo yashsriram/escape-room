@@ -32,23 +32,23 @@ struct ConfigurationSpace {
 		}
 	}
 
-	bool does_intersect(const Vector2f& link1, const Vector2f& link2) const {
+	bool does_intersect(const Vector2f& end1, const Vector2f& end2) const {
 		for (const auto wall : obstacles) {
 			const Vector2f& obs1 = wall.point1;
 			const Vector2f& obs2 = wall.point2;
 			// A
 			Matrix2f A;
 			A <<
-				link2[1] - link1[1], -(link2[0] - link1[0]),
+				end2[1] - end1[1], -(end2[0] - end1[0]),
 				obs2[1] - obs1[1], -(obs2[0] - obs1[0]);
 			// b
 			Vector2f b;
 			b <<
-				link1[0] * link2[1] - link1[1] * link2[0],
+				end1[0] * end2[1] - end1[1] * end2[0],
 				obs1[0] * obs2[1] - obs1[1] * obs2[0];
 			if (abs(A.determinant()) < 1e-6) {
-				Vector2f e1 = (link2 - obs1).normalized();
-				Vector2f e2 = (obs2 - link1).normalized();
+				Vector2f e1 = (end2 - obs1).normalized();
+				Vector2f e2 = (obs2 - end1).normalized();
 				if (1 - abs(e1.dot(e2)) < 1e-6) {
 					// Coincident, we will just assume to be intersecting for simplicity
 					return true;
@@ -61,9 +61,9 @@ struct ConfigurationSpace {
 			Vector2f x = A.colPivHouseholderQr().solve(b);
 
 			// Is intersection b/w link end points?
-			float link_length = (link2 - link1).norm();
-			Vector2f link_unit = (link2 - link1).normalized();
-			Vector2f t_times_link_unit = x - link1;
+			float link_length = (end2 - end1).norm();
+			Vector2f link_unit = (end2 - end1).normalized();
+			Vector2f t_times_link_unit = x - end1;
 
 			float t1 = 0;
 			int den = 0;

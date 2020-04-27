@@ -53,6 +53,14 @@ struct DifferentialDriveAgent {
                 current_milestone++;
                 return;
             }
+            // Next next milestone lookup
+            if (current_milestone < path.size() - 2) {
+                bool blocked = cs.does_intersect(center, path[current_milestone + 2]);
+                if (!blocked) {
+                    current_milestone++;
+                }
+            }
+
             // Move towards next milestone
             Vector2f velocity_dir = to_goal.normalized();
             Vector2f displacement = velocity_dir * linear_speed * dt;
@@ -92,7 +100,7 @@ struct DifferentialDriveAgent {
         orientation_marker.color.a = 1.0;
         orientation_marker.type = visualization_msgs::Marker::LINE_LIST;
         orientation_marker.scale.x = 0.01;
-        orientation_marker.color.r = 1.0f;
+        orientation_marker.color.b = 1.0f;
 
         geometry_msgs::Point p1;
         p1.x = center[0];
@@ -104,9 +112,28 @@ struct DifferentialDriveAgent {
         p2.y = center[1] + sin(orientation) * radius;
         p2.z = 0.2;
         orientation_marker.points.push_back(p2);
-
         rviz.publish(orientation_marker);
 
+        // Next center
+        if (current_milestone < path.size() - 1) {
+            Vector2f next_center = path[current_milestone + 1];
+            visualization_msgs::Marker next_center_marker;
+            next_center_marker.header.frame_id = "/map";
+            next_center_marker.ns = "agent";
+            next_center_marker.header.stamp = ros::Time::now();
+            next_center_marker.id = 2;
+            next_center_marker.type = visualization_msgs::Marker::CYLINDER;
+            next_center_marker.action = visualization_msgs::Marker::ADD;
+            next_center_marker.pose.position.x = next_center[0];
+            next_center_marker.pose.position.y = next_center[1];
+            next_center_marker.pose.orientation.w = 1.0;
+            next_center_marker.scale.x = 2 * radius;
+            next_center_marker.scale.y = 2 * radius;
+            next_center_marker.scale.z = 0.01;
+            next_center_marker.color.r = 1.0f;
+            next_center_marker.color.a = 1.0;
+            rviz.publish(next_center_marker);
+        }
     }
 
     void draw_gazebo() {
