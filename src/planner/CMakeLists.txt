@@ -11,6 +11,7 @@ find_package(
         catkin REQUIRED
         roscpp
         visualization_msgs
+        gazebo_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -141,7 +142,7 @@ add_executable(
         include/robot/planning/milestone.h
         include/robot/acting/differential_drive_agent.h
         include/robot/sensing/configuration_space.h
-        include/robot/sensing/line_segment_obstacle.h
+        include/robot/sensing/line_segment.h
         include/robot/sensing/room.h
 )
 
