@@ -21,17 +21,22 @@ int main(int argc, char **argv) {
     Rate rate(20);
 
     Room room(rviz);
+    // Outer walls
     room.add_wall(Vector2f(3, 3), Vector2f(3, -3));
     room.add_wall(Vector2f(3, 3), Vector2f(-3, 3));
     room.add_wall(Vector2f(-3, 3), Vector2f(-3, -3));
     room.add_wall(Vector2f(-3, -3), Vector2f(1, -3));
+    // Inner walls
+    room.add_wall(Vector2f(-1, 1.5), Vector2f(3, 1.5));
+    room.add_wall(Vector2f(-3, 0.0), Vector2f(1, 0.0));
+    room.add_wall(Vector2f(-1, -1.5), Vector2f(3, -1.5));
 
     Publisher gazebo = node_handle.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state", 10000);
-    DifferentialDriveAgent turtle(rviz, gazebo, Vector2f(0.0, 0.0), PI / 4, 0.4, 2.5, 10);
+    DifferentialDriveAgent turtle(rviz, gazebo, Vector2f(2.0, 2.0), PI / 4, 0.2, 5, 10);
 
     ConfigurationSpace cs(rviz, room, turtle.radius + 0.1);
 
-    ProbabilisticRoadmap prm(rviz, 1500, Vector2f(-5, -5), Vector2f(5, 5), 0.5, cs);
+    ProbabilisticRoadmap prm(rviz, 2000, Vector2f(-5, -5), Vector2f(5, 5), 0.5, cs);
     vector<Vector2f> path = prm.bfs(Vector2f(turtle.center[0], turtle.center[1]), Vector2f(-5.0, 5.0), 1, cs);
     turtle.set_path(path);
 

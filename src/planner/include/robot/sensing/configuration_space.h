@@ -115,7 +115,6 @@ struct ConfigurationSpace {
         line.pose.orientation.w = 1.0;
         line.scale.x = 0.02;
         line.color.r = 1.0f;
-        line.color.b = 1.0f;
         line.color.a = 1.0;
 
         for (int i = 0; i < obstacles.size(); ++i) {
