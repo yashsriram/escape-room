@@ -7,7 +7,6 @@
 #include <eigen3/Eigen/Dense>
 #include <ros/ros.h>
 #include "milestone.h"
-#include "robot/sensing/configuration_space.h"
 #include <queue>
 
 using namespace std;
@@ -15,15 +14,12 @@ using namespace ros;
 using namespace Eigen;
 
 struct ProbabilisticRoadmap {
-    const Publisher &rviz;
     vector<Milestone> milestones;
 
-    explicit ProbabilisticRoadmap(const Publisher &rviz,
-                                  int num_milestones,
+    explicit ProbabilisticRoadmap(int num_milestones,
                                   const Vector2f& min_corner,
                                   const Vector2f& max_corner,
-                                  float max_edge_len,
-                                  const ConfigurationSpace& cs) : rviz(rviz) {
+                                  float max_edge_len) {
         random_device rd;
         mt19937 gen(rd());
         uniform_real_distribution<> x(min_corner[0], max_corner[0]);
@@ -42,11 +38,6 @@ struct ProbabilisticRoadmap {
                 if ((v1.position - v2.position).norm() > max_edge_len) {
                     continue;
                 }
-                // Intersects with obstacles
-                bool does_intersect = cs.does_intersect(v1.position, v2.position);
-                if (does_intersect) {
-                    continue;
-                }
                 // Add link if all okay
                 v1.add_neighbour(v2.id);
                 v2.add_neighbour(v1.id);
@@ -56,7 +47,7 @@ struct ProbabilisticRoadmap {
         cout << "# links = " << num_links << endl;
     }
 
-    int add_milestone(Vector2f position, float edge_len, const ConfigurationSpace& cs) {
+    int add_milestone(Vector2f position, float edge_len) {
         // Get the id of new milestone
         int id = milestones.size();
         // Add milestone
@@ -67,11 +58,6 @@ struct ProbabilisticRoadmap {
             Milestone& neighbour = milestones[i];
             // Too far off
             if ((new_milestone.position - neighbour.position).norm() > edge_len) {
-                continue;
-            }
-            // Intersects with obstacles
-            bool does_intersect = cs.does_intersect(new_milestone.position, neighbour.position);
-            if (does_intersect) {
                 continue;
             }
             // Add link if all okay
@@ -90,10 +76,10 @@ struct ProbabilisticRoadmap {
         fringe.push(next.id);
     }
 
-    vector<Vector2f> bfs(Vector2f start, Vector2f finish, float edge_len, const ConfigurationSpace& cs) {
+    vector<Vector2f> bfs(Vector2f start, Vector2f finish, float edge_len) {
         // Add these to PRM
-        int start_id = add_milestone(start, edge_len, cs);
-        int finish_id = add_milestone(finish, edge_len, cs);
+        int start_id = add_milestone(start, edge_len);
+        int finish_id = add_milestone(finish, edge_len);
 
         // Reset search state of all milestones
         for (auto& milestone: milestones) {
@@ -139,9 +125,9 @@ struct ProbabilisticRoadmap {
         return path;
     }
 
-    void draw_milestones() {
+    void draw_milestones(const Publisher& rviz) {
         visualization_msgs::Marker milestone_markers;
-        milestone_markers.header.frame_id = "/map";
+        milestone_markers.header.frame_id = "/base_scan";
         milestone_markers.ns = "milestones";
         milestone_markers.header.stamp = ros::Time::now();
         milestone_markers.id = 0;
@@ -168,9 +154,9 @@ struct ProbabilisticRoadmap {
         rviz.publish(milestone_markers);
     }
 
-    void draw_links() {
+    void draw_links(const Publisher& rviz) {
         visualization_msgs::Marker link_markers;
-        link_markers.header.frame_id = "/map";
+        link_markers.header.frame_id = "/base_scan";
         link_markers.ns = "links";
         link_markers.header.stamp = ros::Time::now();
         link_markers.id = 0;

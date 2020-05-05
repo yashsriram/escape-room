@@ -12,8 +12,6 @@ using namespace Eigen;
 struct DifferentialDriveAgent {
     const float MILESTONE_SLACK = 0.01f;
     const float ORIENTATION_SLACK = 0.01f;
-    const Publisher& rviz;
-    const Publisher& gazebo;
     Vector2f center;
     float orientation;
     float radius;
@@ -22,23 +20,22 @@ struct DifferentialDriveAgent {
     float linear_speed;
     float angular_speed;
 
-    DifferentialDriveAgent(const Publisher& rviz,
-                           const Publisher& gazebo,
-                           Vector2f center,
+    DifferentialDriveAgent(Vector2f center,
                            float orientation,
                            float radius,
                            float linear_speed,
-                           float angular_speed): 
-        rviz(rviz), gazebo(gazebo), center(center), orientation(orientation), radius(radius),
+                           float angular_speed):
+            center(center), orientation(orientation), radius(radius),
             linear_speed(linear_speed), angular_speed(angular_speed) {
         path.push_back(center);
     }
 
     void set_path(vector<Vector2f> new_path) {
         path = new_path;
+        current_milestone = 0;
     }
 
-    void update(float dt, const ConfigurationSpace& cs) {
+    void update(float dt) {
         if (current_milestone < path.size() - 1) {
             Vector2f to_goal = path[current_milestone + 1] - center;
             float goal_orientation = atan2(to_goal[1], to_goal[0]);
@@ -53,13 +50,6 @@ struct DifferentialDriveAgent {
                 current_milestone++;
                 return;
             }
-            // Next next milestone lookup
-            if (current_milestone < path.size() - 2) {
-                bool blocked = cs.does_intersect(center, path[current_milestone + 2]);
-                if (!blocked) {
-                    current_milestone++;
-                }
-            }
 
             // Move towards next milestone
             Vector2f velocity_dir = to_goal.normalized();
@@ -68,10 +58,10 @@ struct DifferentialDriveAgent {
         }
     }    
 
-    void draw_rviz() {
+    void draw_rviz(const Publisher& rviz) {
         // Position
         visualization_msgs::Marker center_marker;
-        center_marker.header.frame_id = "/map";
+        center_marker.header.frame_id = "/base_scan";
         center_marker.ns = "agent";
         center_marker.header.stamp = ros::Time::now();
         center_marker.id = 0;
@@ -91,7 +81,7 @@ struct DifferentialDriveAgent {
 
         // Orientation
         visualization_msgs::Marker orientation_marker;
-        orientation_marker.header.frame_id = "/map";
+        orientation_marker.header.frame_id = "/base_scan";
         orientation_marker.ns = "agent";
         orientation_marker.header.stamp = ros::Time::now();
         orientation_marker.id = 1;
@@ -118,7 +108,7 @@ struct DifferentialDriveAgent {
         if (current_milestone < path.size() - 1) {
             Vector2f next_center = path[current_milestone + 1];
             visualization_msgs::Marker next_center_marker;
-            next_center_marker.header.frame_id = "/map";
+            next_center_marker.header.frame_id = "/base_scan";
             next_center_marker.ns = "agent";
             next_center_marker.header.stamp = ros::Time::now();
             next_center_marker.id = 2;
@@ -136,7 +126,7 @@ struct DifferentialDriveAgent {
         }
     }
 
-    void draw_gazebo() {
+    void draw_gazebo(const Publisher& gazebo) {
         gazebo_msgs::ModelState tutlebot_state;
         tutlebot_state.model_name = "turtlebot3_burger";
         tutlebot_state.pose.position.x = center[0];
@@ -147,9 +137,9 @@ struct DifferentialDriveAgent {
     }
 
 
-    void draw_path() {
+    void draw_path(const Publisher& rviz) {
         visualization_msgs::Marker path_marker;
-        path_marker.header.frame_id = "/map";
+        path_marker.header.frame_id = "/base_scan";
         path_marker.ns = "path";
         path_marker.header.stamp = ros::Time::now();
         path_marker.id = 0;

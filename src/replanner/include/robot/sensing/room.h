@@ -21,7 +21,7 @@ struct Room {
 
     void draw() {
         visualization_msgs::Marker line;
-        line.header.frame_id = "/map";
+        line.header.frame_id = "/base_scan";
         line.ns = "room";
         line.header.stamp = ros::Time::now();
         line.id = 0;
