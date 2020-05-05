@@ -14,30 +14,29 @@ using namespace Eigen;
 
 const float PI = 3.141592653589793;
 
-DifferentialDriveAgent turtle(Vector2f(0, 0), PI / 4, 0.2, 5, 10);
-ProbabilisticRoadmap prm(2000, Vector2f(-5, -5), Vector2f(5, 5), 0.5);
-visualization_msgs::Marker observed_walls;
+DifferentialDriveAgent turtle(Vector2f(0, 0), PI / 4, 0.1, 5, 10);
+Room observed_room;
+ProbabilisticRoadmap prm(500, Vector2f(-4, -4), Vector2f(4, 4), 0.8);
+ConfigurationSpace cs;
 
 void on_laser_line_segments_detection(const laser_line_extraction::LineSegmentList& msg) {
-    observed_walls.points.clear();
+    // Rotation matrix
     Matrix2f C;
-    C <<
-        cos(turtle.orientation), -(sin(turtle.orientation)),
-        sin(turtle.orientation), cos(turtle.orientation);
+    C << cos(turtle.orientation), -(sin(turtle.orientation)),
+         sin(turtle.orientation), cos(turtle.orientation);
+    // For each line segment
+    observed_room.clear_walls();
     for (int i = 0; i < msg.line_segments.size(); ++i) {
         Vector2f start(msg.line_segments[i].start[0], msg.line_segments[i].start[1]);
         Vector2f end(msg.line_segments[i].end[0], msg.line_segments[i].end[1]);
+        // Transform to global frame; G_P_L = G_P_R + C * R_P_L
         start = turtle.center + C * start;
         end = turtle.center + C * end;
-
-        geometry_msgs::Point p;
-        p.x = start[0];
-        p.y = start[1];
-        observed_walls.points.emplace_back(p);
-        p.x = end[0];
-        p.y = end[1];
-        observed_walls.points.emplace_back(p);
+        // Add wall to observed_room
+        observed_room.add_wall(start, end);
     }
+    // Cull links in PRM
+    prm.cull_links(observed_room, cs);
 }
 
 int main(int argc, char **argv) {
@@ -48,36 +47,24 @@ int main(int argc, char **argv) {
     Subscriber sub = node_handle.subscribe("/line_segments", 1000, on_laser_line_segments_detection);
     Rate rate(20);
 
-    // // ConfigurationSpace cs(rviz, room, turtle.radius + 0.1);
     // vector<Vector2f> path = prm.bfs(Vector2f(turtle.center[0], turtle.center[1]), Vector2f(-5.0, 5.0), 1);
     // turtle.set_path(path);
-
-    observed_walls.header.frame_id = "/base_scan";
-    observed_walls.ns = "scratch";
-    observed_walls.header.stamp = ros::Time::now();
-    observed_walls.id = 0;
-    observed_walls.type = visualization_msgs::Marker::LINE_LIST;
-    observed_walls.action = visualization_msgs::Marker::ADD;
-    observed_walls.pose.orientation.w = 1.0;
-    observed_walls.scale.x = 0.02;
-    observed_walls.color.r = 1.0f;
-    observed_walls.color.a = 1.0;
-
 
     while (ros::ok()) {
         /* Sense */
         spinOnce();
-        rviz.publish(observed_walls);
         /* Plan */
+
         /* Update */
         // for (int i = 0; i < 10; ++i) {
         //     turtle.update(0.001);
         // }
         
         /* Draw */
+        observed_room.draw(rviz);
         prm.draw_links(rviz);
         prm.draw_milestones(rviz);
-        // // cs.draw();
+        cs.draw(rviz);
         // turtle.draw_rviz();
         // turtle.draw_path();
         turtle.draw_gazebo(gazebo);

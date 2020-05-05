@@ -20,6 +20,15 @@ struct Milestone {
         neighbourIds.push_back(id);
     }
 
+    void remove_neighbour(int id) {
+        for (int i = 0; i < neighbourIds.size(); ++i) {
+            if (neighbourIds[i] == id) {
+                neighbourIds.erase(neighbourIds.begin() + i);
+                break;
+            }
+        }
+    }
+
     bool is_explored = false;
 	float distance_from_start = 0;
 	float distance_to_finish = 0;

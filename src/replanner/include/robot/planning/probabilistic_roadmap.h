@@ -67,6 +67,24 @@ struct ProbabilisticRoadmap {
         return id;
     }
 
+    void cull_links(const Room& room, ConfigurationSpace& cs) {
+        int num_culls = 0;
+        for (int i = 0; i < milestones.size() - 1; ++i) {
+            Milestone &v1 = milestones[i];
+            for (int j = 0; j < v1.neighbourIds.size(); ++j) {
+                Milestone &v2 = milestones[v1.neighbourIds[j]];
+                // If this link intersects any observed wall cull it
+                bool does_intersect = cs.does_intersect(room, v1.position, v2.position, 0.1f);
+                if (does_intersect) {
+                    v1.remove_neighbour(v2.id);
+                    v2.remove_neighbour(v1.id);
+                    num_culls++;
+                }
+            }
+        }
+        cout << num_culls << " culled\r" << endl;
+    }
+
     void add_to_fringe(queue<int>& fringe, Milestone& current, Milestone& next) {
         next.distance_from_start = current.distance_from_start + (next.position - current.position).norm();
         next.is_explored = true;

@@ -10,19 +10,22 @@ using namespace ros;
 using namespace Eigen;
 
 struct Room {
-    const Publisher &rviz;
     vector<LineSegment> walls;
 
-    explicit Room(const Publisher& rviz) : rviz(rviz) {}
+    explicit Room() {}
+
+    void clear_walls() {
+        walls.clear();
+    }
 
     void add_wall(Vector2f point1, Vector2f point2) {
         walls.push_back(LineSegment(point1, point2));
     }
 
-    void draw() {
+    void draw(const Publisher& rviz) {
         visualization_msgs::Marker line;
         line.header.frame_id = "/base_scan";
-        line.ns = "room";
+        line.ns = "observed_room";
         line.header.stamp = ros::Time::now();
         line.id = 0;
         line.type = visualization_msgs::Marker::LINE_LIST;
