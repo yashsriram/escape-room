@@ -58,7 +58,7 @@ struct ConfigurationSpace {
 				}
 			}
 			// Ax = b
-			Vector2f x = A.colPivHouseholderQr().solve(b);
+			Vector2f x = A.inverse() * b;
 
 			// Is intersection b/w link end points?
 			float link_length = (end2 - end1).norm();
@@ -106,7 +106,7 @@ struct ConfigurationSpace {
 
 	void draw() {
 		visualization_msgs::Marker line;
-        line.header.frame_id = "/map";
+        line.header.frame_id = "/base_scan";
         line.ns = "cs_obstacles";
         line.header.stamp = ros::Time::now();
         line.id = 0;

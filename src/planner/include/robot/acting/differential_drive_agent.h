@@ -71,7 +71,7 @@ struct DifferentialDriveAgent {
     void draw_rviz() {
         // Position
         visualization_msgs::Marker center_marker;
-        center_marker.header.frame_id = "/map";
+        center_marker.header.frame_id = "/base_scan";
         center_marker.ns = "agent";
         center_marker.header.stamp = ros::Time::now();
         center_marker.id = 0;
@@ -91,7 +91,7 @@ struct DifferentialDriveAgent {
 
         // Orientation
         visualization_msgs::Marker orientation_marker;
-        orientation_marker.header.frame_id = "/map";
+        orientation_marker.header.frame_id = "/base_scan";
         orientation_marker.ns = "agent";
         orientation_marker.header.stamp = ros::Time::now();
         orientation_marker.id = 1;
@@ -118,7 +118,7 @@ struct DifferentialDriveAgent {
         if (current_milestone < path.size() - 1) {
             Vector2f next_center = path[current_milestone + 1];
             visualization_msgs::Marker next_center_marker;
-            next_center_marker.header.frame_id = "/map";
+            next_center_marker.header.frame_id = "/base_scan";
             next_center_marker.ns = "agent";
             next_center_marker.header.stamp = ros::Time::now();
             next_center_marker.id = 2;
@@ -149,7 +149,7 @@ struct DifferentialDriveAgent {
 
     void draw_path() {
         visualization_msgs::Marker path_marker;
-        path_marker.header.frame_id = "/map";
+        path_marker.header.frame_id = "/base_scan";
         path_marker.ns = "path";
         path_marker.header.stamp = ros::Time::now();
         path_marker.id = 0;

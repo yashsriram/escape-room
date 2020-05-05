@@ -51,8 +51,8 @@ int main(int argc, char **argv) {
         prm.draw_milestones();
         room.draw();
         cs.draw();
-        // turtle.draw_rviz();
-        // turtle.draw_path();
+        turtle.draw_rviz();
+        turtle.draw_path();
         turtle.draw_gazebo();
 
         /* Sleep */

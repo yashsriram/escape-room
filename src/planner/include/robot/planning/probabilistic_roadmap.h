@@ -141,7 +141,7 @@ struct ProbabilisticRoadmap {
 
     void draw_milestones() {
         visualization_msgs::Marker milestone_markers;
-        milestone_markers.header.frame_id = "/map";
+        milestone_markers.header.frame_id = "/base_scan";
         milestone_markers.ns = "milestones";
         milestone_markers.header.stamp = ros::Time::now();
         milestone_markers.id = 0;
@@ -170,7 +170,7 @@ struct ProbabilisticRoadmap {
 
     void draw_links() {
         visualization_msgs::Marker link_markers;
-        link_markers.header.frame_id = "/map";
+        link_markers.header.frame_id = "/base_scan";
         link_markers.ns = "links";
         link_markers.header.stamp = ros::Time::now();
         link_markers.id = 0;
