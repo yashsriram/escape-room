@@ -15,6 +15,7 @@ using namespace Eigen;
 
 struct ProbabilisticRoadmap {
     vector<Milestone> milestones;
+    int num_milestones_inside_obstacles = 0;
 
     explicit ProbabilisticRoadmap(int num_milestones,
                                   const Vector2f& min_corner,
@@ -28,8 +29,8 @@ struct ProbabilisticRoadmap {
         for (uint32_t i = 0; i < num_milestones; ++i) {
             milestones.push_back(Milestone(i, x(gen), y(gen)));
         }
-        // Create links
-        int num_links = 0;
+        // Create edges
+        int num_edges = 0;
         for (int i = 0; i < milestones.size() - 1; ++i) {
             for (int j = i + 1; j < milestones.size(); j++) {
                 Milestone &v1 = milestones[i];
@@ -38,13 +39,13 @@ struct ProbabilisticRoadmap {
                 if ((v1.position - v2.position).norm() > max_edge_len) {
                     continue;
                 }
-                // Add link if all okay
+                // Add edge if all okay
                 v1.add_neighbour(v2.id);
                 v2.add_neighbour(v1.id);
-                num_links++;
+                num_edges++;
             }
         }
-        cout << "# links = " << num_links << endl;
+        cout << "# edges = " << num_edges << endl;
     }
 
     int add_milestone(Vector2f position, float edge_len) {
@@ -53,7 +54,7 @@ struct ProbabilisticRoadmap {
         // Add milestone
         milestones.push_back(Milestone(id, position[0], position[1]));
         Milestone& new_milestone = milestones[milestones.size() - 1];
-        // Add links to neighbours properly
+        // Add edges to neighbours properly
         for (int i = 0; i < milestones.size() - 1; ++i) {
             Milestone& neighbour = milestones[i];
             // Too far off
@@ -64,27 +65,70 @@ struct ProbabilisticRoadmap {
             if (neighbour.is_inside_obstacle) {
                 continue;
             }
-            // Add link if all okay
+            // Add edge if all okay
             new_milestone.add_neighbour(neighbour.id);
             neighbour.add_neighbour(new_milestone.id);
+            break;
         }
         return id;
     }
 
-    void cull_milestones(const Vector2f& center, const ConfigurationSpace& cs) {
-        int num_culls = 0;
-        for (int i = 0; i < milestones.size() - 1; ++i) {
+    void reset_num_hits() {
+        for (int i = 0; i < milestones.size(); ++i) {
             Milestone& milestone = milestones[i];
+            if (!milestone.is_inside_obstacle) {
+                milestone.num_hits = 0;
+            }
+        }
+    }
+
+    void cull_milestones(const Vector2f& center, const ConfigurationSpace& cs, int min_hit_for_inside_obstacle) {
+        int num_culls = 0;
+        for (int i = 0; i < milestones.size(); ++i) {
+            Milestone& milestone = milestones[i];
+            // If already inside obstacle no need to check
             if (milestone.is_inside_obstacle) {
                 continue;
             }
             bool is_inside_obstacle = cs.is_inside_obstacle(milestone.position);
             if (is_inside_obstacle) {
-                milestone.is_inside_obstacle = true;
-                num_culls++;
+                num_milestones_inside_obstacles++;
+                milestone.num_hits++;
+                if (milestone.num_hits >= min_hit_for_inside_obstacle) {
+                    milestone.is_inside_obstacle = true;
+                    for (const auto& neighbourId: milestone.neighbourIds) {
+                        milestone.remove_neighbour(neighbourId);
+                        milestones[neighbourId].remove_neighbour(milestone.id);
+                    }
+                    num_culls++;                    
+                }
+            }
+        }
+    }
+
+    int cull_edges(const Vector2f& center, const ConfigurationSpace& cs) {
+        int num_culls = 0;
+        for (int i = 0; i < milestones.size() - 1; ++i) {
+            Milestone &v1 = milestones[i];
+            // Collect occlusions
+            vector<int> occluded_neighbours;
+            for (int j = 0; j < v1.neighbourIds.size(); ++j) {
+                Milestone &v2 = milestones[v1.neighbourIds[j]];
+                // If this edge intersects any observed wall cull it
+                bool does_intersect = cs.does_intersect(v1.position, v2.position);
+                if (does_intersect) {
+                    occluded_neighbours.push_back(v2.id);
+                    num_culls++;
+                }
+            }
+            // Remove edges
+            for (int occluded_neighbour_id: occluded_neighbours) {
+                v1.remove_neighbour(occluded_neighbour_id);
+                milestones[occluded_neighbour_id].remove_neighbour(v1.id);
             }
         }
         cout << num_culls << " culled\r" << endl;
+        return num_culls;
     }
 
     void add_to_fringe(queue<int>& fringe, Milestone& current, Milestone& next) {
@@ -150,8 +194,8 @@ struct ProbabilisticRoadmap {
         milestone_markers.action = visualization_msgs::Marker::ADD;
         milestone_markers.pose.orientation.w = 1.0;
         milestone_markers.type = visualization_msgs::Marker::POINTS;
-        milestone_markers.scale.x = 0.02;
-        milestone_markers.scale.y = 0.02;
+        milestone_markers.scale.x = 0.03;
+        milestone_markers.scale.y = 0.03;
 
         // Milestones
         for (const auto &milestone : milestones) {
@@ -176,42 +220,34 @@ struct ProbabilisticRoadmap {
         rviz.publish(milestone_markers);
     }
 
-    void draw_links(const Publisher& rviz) {
-        visualization_msgs::Marker link_markers;
-        link_markers.header.frame_id = "/base_scan";
-        link_markers.ns = "links";
-        link_markers.header.stamp = ros::Time::now();
-        link_markers.id = 0;
-        link_markers.action = visualization_msgs::Marker::ADD;
-        link_markers.pose.orientation.w = 1.0;
-        link_markers.type = visualization_msgs::Marker::LINE_LIST;
-        link_markers.scale.x = 0.01;
+    void draw_edges(const Publisher& rviz) {
+        visualization_msgs::Marker edge_markers;
+        edge_markers.header.frame_id = "/base_scan";
+        edge_markers.ns = "edges";
+        edge_markers.header.stamp = ros::Time::now();
+        edge_markers.id = 0;
+        edge_markers.action = visualization_msgs::Marker::ADD;
+        edge_markers.pose.orientation.w = 1.0;
+        edge_markers.type = visualization_msgs::Marker::LINE_LIST;
+        edge_markers.scale.x = 0.01;
+        edge_markers.color.r = edge_markers.color.b = edge_markers.color.g = 1.0f;
+        edge_markers.color.a = 0.2;
 
-        // Links
+        // edges
         for (const auto &milestone : milestones) {
-            std_msgs::ColorRGBA c;
-            if (milestone.is_inside_obstacle) {
-                c.r = c.b = 1.0f;
-                c.g = 1.0f;
-                c.a = 0.0;
-            } else {
-                c.r = c.g = c.b = 1.0f;
-                c.a = 0.2;
-            }
             for (auto neighbourId: milestone.neighbourIds) {
-                link_markers.colors.push_back(c);
                 geometry_msgs::Point p1;
                 p1.x = milestone.position[0];
                 p1.y = milestone.position[1];
-                link_markers.points.push_back(p1);
+                edge_markers.points.push_back(p1);
                 geometry_msgs::Point p2;
                 p2.x = milestones[neighbourId].position[0];
                 p2.y = milestones[neighbourId].position[1];
-                link_markers.points.push_back(p2);
+                edge_markers.points.push_back(p2);
             }
         }
 
-        rviz.publish(link_markers);
+        rviz.publish(edge_markers);
     }
 };
 

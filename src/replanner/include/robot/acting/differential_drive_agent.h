@@ -147,9 +147,9 @@ struct DifferentialDriveAgent {
         path_marker.color.a = 1.0;
         path_marker.type = visualization_msgs::Marker::LINE_STRIP;
         path_marker.scale.x = 0.01;
-        path_marker.color.r = path_marker.color.g = path_marker.color.b = 1.0f;
+        path_marker.color.r = path_marker.color.g = 1.0f;
 
-        // Links
+        // edges
         for (const auto &milestone : path) {
             geometry_msgs::Point p;
             p.x = milestone[0];

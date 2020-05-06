@@ -10,6 +10,7 @@ using namespace Eigen;
 struct Milestone {
     const int id;
     bool is_inside_obstacle = false;
+    int num_hits = 0;
     const Vector2f position;
     vector<int> neighbourIds;
 
