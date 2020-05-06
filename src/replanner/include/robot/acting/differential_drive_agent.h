@@ -58,7 +58,7 @@ struct DifferentialDriveAgent {
         }
     }    
 
-    void draw_rviz(const Publisher& rviz) {
+    void draw_rviz(const Publisher& rviz, bool is_moving) {
         // Position
         visualization_msgs::Marker center_marker;
         center_marker.header.frame_id = "/base_scan";
@@ -73,8 +73,12 @@ struct DifferentialDriveAgent {
         center_marker.scale.x = 2 * radius;
         center_marker.scale.y = 2 * radius;
         center_marker.scale.z = 0.01;
-        center_marker.color.r = 1.0f;
-        center_marker.color.g = 1.0f;
+        if (is_moving) {
+            center_marker.color.r = 1.0f;
+            center_marker.color.g = 1.0f;
+        } else {
+            center_marker.color.b = 1.0f;
+        }
         center_marker.color.a = 1.0;
         rviz.publish(center_marker);
 

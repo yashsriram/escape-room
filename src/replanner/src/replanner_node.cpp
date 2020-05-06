@@ -17,8 +17,9 @@ const float PI = 3.141592653589793;
 const float MAX_EDGE_LEN = 0.45;
 const Vector2f MAX_CORNER = Vector2f(-6, -6);
 const Vector2f MIN_CORNER = Vector2f(2, 2);
+const int SENSE_STOP_FREQUENCY = 5;
 
-DifferentialDriveAgent turtle(Vector2f(0, 0), 0, 0.1, 5, 10);
+DifferentialDriveAgent turtle(Vector2f(0, 0), 0, 0.1, 5, 30);
 Room observed_room;
 ConfigurationSpace cs;
 ProbabilisticRoadmap prm(2500, MIN_CORNER, MAX_CORNER, MAX_EDGE_LEN);
@@ -68,10 +69,10 @@ int main(int argc, char **argv) {
     }
     turtle.set_path(path);
 
-    int prev_milestone = -6;
+    int prev_milestone = -SENSE_STOP_FREQUENCY;
     int prev_num_milestones_inside_obstacles = 0;
     while (ros::ok()) {
-        if (turtle.current_milestone > prev_milestone + 5) {
+        if (turtle.current_milestone >= prev_milestone + SENSE_STOP_FREQUENCY) {
             cout << "Found new milestone: Sensing" << endl;
             // Sense for some time
             for (int k = 0; k < 20; ++k) {
@@ -91,7 +92,7 @@ int main(int argc, char **argv) {
                 prm.draw_edges(rviz);
                 prm.draw_milestones(rviz);
                 cs.draw(rviz);
-                turtle.draw_rviz(rviz);
+                turtle.draw_rviz(rviz, false);
                 turtle.draw_path(rviz);
                 turtle.draw_gazebo(gazebo);
                 // Sleep
@@ -106,12 +107,14 @@ int main(int argc, char **argv) {
         } else {
             // Replan if required
             bool replan = false;
+            // If any of the milestone on path is inside obstacle
             for (int i = 0; i < path_ids.size(); ++i) {
                 if (prm.milestones[path_ids[i]].is_inside_obstacle) {
                     replan = true;
                     break;
                 }
             }
+            // If the path intersects any obstacle
             for (int i = turtle.current_milestone + 1; i < path_ids.size(); ++i) {
                 bool does_intersect = cs.does_intersect(prm.milestones[path_ids[i]].position, prm.milestones[path_ids[i - 1]].position);
                 if (does_intersect) {
@@ -133,8 +136,9 @@ int main(int argc, char **argv) {
                 turtle.set_path(path);
                 prev_milestone = 0;
             }
-            cout << "Moving\r";
+
             // Act
+            cout << "Moving\r";
             for (int i = 0; i < 100; ++i) {
                 turtle.update(0.0001);
             }
@@ -144,7 +148,7 @@ int main(int argc, char **argv) {
         prm.draw_edges(rviz);
         prm.draw_milestones(rviz);
         cs.draw(rviz);
-        turtle.draw_rviz(rviz);
+        turtle.draw_rviz(rviz, true);
         turtle.draw_path(rviz);
         turtle.draw_gazebo(gazebo);
         // Sleep
