@@ -14,15 +14,15 @@ using namespace ros;
 using namespace Eigen;
 
 const float PI = 3.141592653589793;
-const float MAX_EDGE_LEN = 0.45;
+const float MAX_EDGE_LEN = 0.6;
 const Vector2f MAX_CORNER = Vector2f(-6, -6);
 const Vector2f MIN_CORNER = Vector2f(2, 2);
-const int SENSE_STOP_FREQUENCY = 5;
+const int SENSE_STOP_FREQUENCY = 2;
 
 DifferentialDriveAgent turtle(Vector2f(0, 0), 0, 0.1, 5, 30);
 Room observed_room;
 ConfigurationSpace cs;
-ProbabilisticRoadmap prm(2500, MIN_CORNER, MAX_CORNER, MAX_EDGE_LEN);
+ProbabilisticRoadmap prm(800, MIN_CORNER, MAX_CORNER, MAX_EDGE_LEN);
 
 bool first_callback_in_queue = true;
 
