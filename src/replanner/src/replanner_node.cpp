@@ -22,6 +22,7 @@ int num_culls = 0;
 bool first_callback_in_queue = true;
 
 void on_laser_line_segments_detection(const laser_line_extraction::LineSegmentList& msg) {
+    // Don't consider more than one scan per iteration
     if (!first_callback_in_queue) {
         return;
     }
@@ -44,6 +45,7 @@ void on_laser_line_segments_detection(const laser_line_extraction::LineSegmentLi
     cs.reset_room(observed_room, turtle.radius + 0.01);
     // num_culls = prm.cull_links(turtle.center, cs);
     first_callback_in_queue = false;
+    turtle.orientation += 0.01;
 }
 
 int main(int argc, char **argv) {
@@ -57,23 +59,21 @@ int main(int argc, char **argv) {
     turtle.set_path(path);
 
     while (ros::ok()) {
-        cout << "================" << endl;
-        /* Sense */
+        // Sense and update world info
         first_callback_in_queue = true;
         spinOnce();
-        /* Plan */
+        // Plan
         if (num_culls > 10) {
             vector<Vector2f> path = prm.bfs(Vector2f(turtle.center), Vector2f(-4.0, 4.0), 0.4, cs);
             turtle.set_path(path);
             cout << "replanned" << endl;
         }
         num_culls = 0;
-        /* Update */
-        for (int i = 0; i < 10; ++i) {
-            turtle.update(0.001);
-        }
-        
-        /* Draw */
+        // Act
+        // for (int i = 0; i < 10; ++i) {
+        //     turtle.update(0.001);
+        // }
+        // Draw
         observed_room.draw(rviz);
         prm.draw_links(rviz);
         prm.draw_milestones(rviz);

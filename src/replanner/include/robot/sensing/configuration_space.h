@@ -35,76 +35,7 @@ struct ConfigurationSpace {
 		}
 	}
 
-	bool does_intersect(const Vector2f& end1, const Vector2f& end2) const {
-		// Check for intersection with any wall
-		for (const LineSegment& wall : obstacles) {
-			const Vector2f& obs1 = wall.point1;
-			const Vector2f& obs2 = wall.point2;
-			// A
-			Matrix2f A;
-			A <<
-				end2[1] - end1[1], -(end2[0] - end1[0]),
-				obs2[1] - obs1[1], -(obs2[0] - obs1[0]);
-			// b
-			Vector2f b;
-			b <<
-				end1[0] * end2[1] - end1[1] * end2[0],
-				obs1[0] * obs2[1] - obs1[1] * obs2[0];
-			if (abs(A.determinant()) < 1e-6) {
-				Vector2f e1 = (end2 - obs1).normalized();
-				Vector2f e2 = (obs2 - end1).normalized();
-				if (1 - abs(e1.dot(e2)) < 1e-6) {
-					// Coincident, we will just assume to be intersecting for simplicity
-					return true;
-				} else {
-					// Parallel
-					continue;
-				}
-			}
-			// Ax = b
-			Vector2f x = A.inverse()* b;
-
-			// Is intersection b/w link end points?
-			float link_length = (end2 - end1).norm();
-			Vector2f link_unit = (end2 - end1).normalized();
-			Vector2f t_times_link_unit = x - end1;
-
-			float t1 = 0;
-			int den = 0;
-			if (abs(link_unit[0]) > 1e-4) {
-				t1 += t_times_link_unit[0] / link_unit[0];
-				den++;
-			}
-			if (abs(link_unit[1]) > 1e-4) {
-				t1 += t_times_link_unit[1] / link_unit[1];
-				den++;
-			}
-			t1 = t1 / den;
-			if ( t1 < 0 || t1 > link_length ) {
-				continue;
-			}
-
-			// Is intersection b/w obs end points?
-			float obs_length = (obs2 - obs1).norm();
-			Vector2f obs_unit = (obs2 - obs1).normalized();
-			Vector2f t_times_obs_unit = x - obs1;
-			float t2 = 0;
-			den = 0;
-			if (abs(obs_unit[0]) > 1e-4) {
-				t2 += t_times_obs_unit[0] / obs_unit[0];
-				den++;
-			}
-			if (abs(obs_unit[1]) > 1e-4) {
-				t2 += t_times_obs_unit[1] / obs_unit[1];
-				den++;
-			}
-			t2 = t2 / den;
-			if ( t2 < 0 || t2 > obs_length ) {
-				continue;
-			}
-
-			return true;
-		}
+	bool is_inside_obstacle(const Vector2f& milestone) const {
 		return false;
 	}
 

@@ -60,8 +60,8 @@ struct ProbabilisticRoadmap {
             if ((new_milestone.position - neighbour.position).norm() > edge_len) {
                 continue;
             }
-            // If intersects with obstacle
-            if (cs.does_intersect(new_milestone.position, neighbour.position)) {
+            // If inside obstacle
+            if (neighbour.is_inside_obstacle) {
                 continue;
             }
             // Add link if all okay
@@ -74,25 +74,14 @@ struct ProbabilisticRoadmap {
     int cull_links(const Vector2f& center, const ConfigurationSpace& cs) {
         int num_culls = 0;
         for (int i = 0; i < milestones.size() - 1; ++i) {
-            Milestone &v1 = milestones[i];
-            if ((v1.position - center).norm() > 1.5) {
+            Milestone& milestone = milestones[i];
+            if (milestone.is_inside_obstacle) {
                 continue;
             }
-            // Collect occlusions
-            vector<int> occluded_neighbours;
-            for (int j = 0; j < v1.neighbourIds.size(); ++j) {
-                Milestone &v2 = milestones[v1.neighbourIds[j]];
-                // If this link intersects any observed wall cull it
-                bool does_intersect = cs.does_intersect(v1.position, v2.position);
-                if (does_intersect) {
-                    occluded_neighbours.push_back(v2.id);
-                    num_culls++;
-                }
-            }
-            // Remove links
-            for (int occluded_neighbour_id: occluded_neighbours) {
-                v1.remove_neighbour(occluded_neighbour_id);
-                milestones[occluded_neighbour_id].remove_neighbour(v1.id);
+            bool is_inside_obstacle = cs.is_inside_obstacle(milestone.position);
+            if (is_inside_obstacle) {
+                milestone.is_inside_obstacle = true;
+                num_culls++;
             }
         }
         cout << num_culls << " culled\r" << endl;
@@ -145,7 +134,7 @@ struct ProbabilisticRoadmap {
             // Update fringe
             for (int neighbourId : current.neighbourIds) {
                 Milestone& neighbour = milestones[neighbourId];
-                if (!neighbour.is_explored) {
+                if (!neighbour.is_explored && !neighbour.is_inside_obstacle) {
                     add_to_fringe(fringe, current, neighbour);
                 }
             }
