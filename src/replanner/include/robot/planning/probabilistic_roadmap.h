@@ -47,7 +47,7 @@ struct ProbabilisticRoadmap {
         cout << "# links = " << num_links << endl;
     }
 
-    int add_milestone(Vector2f position, float edge_len, const ConfigurationSpace& cs) {
+    int add_milestone(Vector2f position, float edge_len) {
         // Get the id of new milestone
         int id = milestones.size();
         // Add milestone
@@ -71,7 +71,7 @@ struct ProbabilisticRoadmap {
         return id;
     }
 
-    int cull_links(const Vector2f& center, const ConfigurationSpace& cs) {
+    void cull_milestones(const Vector2f& center, const ConfigurationSpace& cs) {
         int num_culls = 0;
         for (int i = 0; i < milestones.size() - 1; ++i) {
             Milestone& milestone = milestones[i];
@@ -85,7 +85,6 @@ struct ProbabilisticRoadmap {
             }
         }
         cout << num_culls << " culled\r" << endl;
-        return num_culls;
     }
 
     void add_to_fringe(queue<int>& fringe, Milestone& current, Milestone& next) {
@@ -97,10 +96,10 @@ struct ProbabilisticRoadmap {
         fringe.push(next.id);
     }
 
-    vector<Vector2f> bfs(Vector2f start, Vector2f finish, float edge_len, const ConfigurationSpace& cs) {
+    vector<int> bfs(Vector2f start, Vector2f finish, float edge_len) {
         // Add these to PRM
-        int start_id = add_milestone(start, edge_len, cs);
-        int finish_id = add_milestone(finish, edge_len, cs);
+        int start_id = add_milestone(start, edge_len);
+        int finish_id = add_milestone(finish, edge_len);
 
         // Reset search state of all milestones
         for (auto& milestone: milestones) {
@@ -123,11 +122,7 @@ struct ProbabilisticRoadmap {
             if (current_id == finish_id) {
                 cout << "Reached finish, # vertices explored: " <<  num_vertices_explored << endl;
                 cout << "path size: " << current.path_from_start.size() << endl;
-                vector<Vector2f> path;
-                for (int id : current.path_from_start) {
-                    path.push_back(milestones[id].position);
-                }
-                return path;
+                return current.path_from_start;
             }
             // Mark this vertex as explored
             current.color = Vector3f(1, 0, 0);
@@ -141,8 +136,8 @@ struct ProbabilisticRoadmap {
         }
 
         cout << "Could not reach finish, # vertices explored: " << num_vertices_explored << endl;
-        vector<Vector2f> path;
-        path.push_back(milestones[start_id].position);
+        vector<int> path;
+        path.push_back(start_id);
         return path;
     }
 
@@ -155,21 +150,27 @@ struct ProbabilisticRoadmap {
         milestone_markers.action = visualization_msgs::Marker::ADD;
         milestone_markers.pose.orientation.w = 1.0;
         milestone_markers.type = visualization_msgs::Marker::POINTS;
-        milestone_markers.scale.x = 0.05;
-        milestone_markers.scale.y = 0.05;
+        milestone_markers.scale.x = 0.02;
+        milestone_markers.scale.y = 0.02;
 
         // Milestones
         for (const auto &milestone : milestones) {
+            std_msgs::ColorRGBA c;
+            c.a = 1.0;
+            if (milestone.is_inside_obstacle) {
+                c.r = c.b = 1.0f;
+                c.g = 0.0f;
+            } else {
+                c.r = milestone.color[0];
+                c.g = milestone.color[1];
+                c.b = milestone.color[2];
+            }
+            milestone_markers.colors.push_back(c);
+
             geometry_msgs::Point p;
             p.x = milestone.position[0];
             p.y = milestone.position[1];
             milestone_markers.points.push_back(p);
-            std_msgs::ColorRGBA c;
-            c.a = 1.0;
-            c.r = milestone.color[0];
-            c.g = milestone.color[1];
-            c.b = milestone.color[2];
-            milestone_markers.colors.push_back(c);
         }
 
         rviz.publish(milestone_markers);
@@ -183,14 +184,22 @@ struct ProbabilisticRoadmap {
         link_markers.id = 0;
         link_markers.action = visualization_msgs::Marker::ADD;
         link_markers.pose.orientation.w = 1.0;
-        link_markers.color.a = 0.2;
         link_markers.type = visualization_msgs::Marker::LINE_LIST;
         link_markers.scale.x = 0.01;
-        link_markers.color.r = link_markers.color.g = link_markers.color.b = 1.0f;
 
         // Links
         for (const auto &milestone : milestones) {
+            std_msgs::ColorRGBA c;
+            if (milestone.is_inside_obstacle) {
+                c.r = c.b = 1.0f;
+                c.g = 1.0f;
+                c.a = 0.0;
+            } else {
+                c.r = c.g = c.b = 1.0f;
+                c.a = 0.2;
+            }
             for (auto neighbourId: milestone.neighbourIds) {
+                link_markers.colors.push_back(c);
                 geometry_msgs::Point p1;
                 p1.x = milestone.position[0];
                 p1.y = milestone.position[1];

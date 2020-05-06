@@ -14,11 +14,11 @@ using namespace Eigen;
 
 const float PI = 3.141592653589793;
 
-DifferentialDriveAgent turtle(Vector2f(0, 0), 0, 0.1, 5, 5);
+DifferentialDriveAgent turtle(Vector2f(0, 0), PI / 2, 0.1, 5, 5);
 Room observed_room;
-ProbabilisticRoadmap prm(500, Vector2f(-4, -4), Vector2f(4, 4), 0.8);
 ConfigurationSpace cs;
-int num_culls = 0;
+ProbabilisticRoadmap prm(5000, Vector2f(-4, -4), Vector2f(4, 4), 0.5);
+
 bool first_callback_in_queue = true;
 
 void on_laser_line_segments_detection(const laser_line_extraction::LineSegmentList& msg) {
@@ -41,11 +41,12 @@ void on_laser_line_segments_detection(const laser_line_extraction::LineSegmentLi
         // Add wall to observed_room
         observed_room.add_wall(start, end);
     }
+    // Reset config space with current observations
+    cs.reset(observed_room, turtle.radius + 0.01);
     // Cull links in PRM
-    cs.reset_room(observed_room, turtle.radius + 0.01);
-    // num_culls = prm.cull_links(turtle.center, cs);
+    prm.cull_milestones(turtle.center, cs);
     first_callback_in_queue = false;
-    turtle.orientation += 0.01;
+    turtle.orientation += 0.01f;
 }
 
 int main(int argc, char **argv) {
@@ -55,20 +56,36 @@ int main(int argc, char **argv) {
     Publisher gazebo = node_handle.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state", 10000);
     Subscriber sub = node_handle.subscribe("/line_segments", 1000, on_laser_line_segments_detection);
     Rate rate(10);
-    vector<Vector2f> path = prm.bfs(Vector2f(turtle.center), Vector2f(-4.0, 4.0), 1, cs);
+
+    vector<int> path_ids = prm.bfs(Vector2f(turtle.center), Vector2f(-4.0, 4.0), 1);
+
+    // Initial path
+    vector<Vector2f> path;
+    for (int i = 0; i < path_ids.size(); ++i) {
+        path.push_back(prm.milestones[path_ids[i]].position);
+    }
     turtle.set_path(path);
 
     while (ros::ok()) {
         // Sense and update world info
         first_callback_in_queue = true;
         spinOnce();
-        // Plan
-        if (num_culls > 10) {
-            vector<Vector2f> path = prm.bfs(Vector2f(turtle.center), Vector2f(-4.0, 4.0), 0.4, cs);
-            turtle.set_path(path);
-            cout << "replanned" << endl;
+        // Plan if required
+        bool replan = false;
+        for (int i = 0; i < path_ids.size(); ++i) {
+            if (prm.milestones[path_ids[i]].is_inside_obstacle) {
+                replan = true;
+                break;
+            }
         }
-        num_culls = 0;
+        if (replan) {
+            path_ids = prm.bfs(Vector2f(turtle.center), Vector2f(-4.0, 4.0), 1);
+            vector<Vector2f> path;
+            for (int i = 0; i < path_ids.size(); ++i) {
+                path.push_back(prm.milestones[path_ids[i]].position);
+            }
+            turtle.set_path(path);
+        }
         // Act
         // for (int i = 0; i < 10; ++i) {
         //     turtle.update(0.001);
