@@ -75,7 +75,6 @@ struct DifferentialDriveAgent {
         center_marker.scale.z = 0.01;
         center_marker.color.r = 1.0f;
         center_marker.color.g = 1.0f;
-        center_marker.color.b = 1.0f;
         center_marker.color.a = 1.0;
         rviz.publish(center_marker);
 

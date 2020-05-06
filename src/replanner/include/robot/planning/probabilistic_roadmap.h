@@ -47,7 +47,7 @@ struct ProbabilisticRoadmap {
         cout << "# links = " << num_links << endl;
     }
 
-    int add_milestone(Vector2f position, float edge_len) {
+    int add_milestone(Vector2f position, float edge_len, const ConfigurationSpace& cs) {
         // Get the id of new milestone
         int id = milestones.size();
         // Add milestone
@@ -60,6 +60,10 @@ struct ProbabilisticRoadmap {
             if ((new_milestone.position - neighbour.position).norm() > edge_len) {
                 continue;
             }
+            // If intersects with obstacle
+            if (cs.does_intersect(new_milestone.position, neighbour.position)) {
+                continue;
+            }
             // Add link if all okay
             new_milestone.add_neighbour(neighbour.id);
             neighbour.add_neighbour(new_milestone.id);
@@ -67,22 +71,32 @@ struct ProbabilisticRoadmap {
         return id;
     }
 
-    void cull_links(const Room& room, ConfigurationSpace& cs) {
+    int cull_links(const Vector2f& center, const ConfigurationSpace& cs) {
         int num_culls = 0;
         for (int i = 0; i < milestones.size() - 1; ++i) {
             Milestone &v1 = milestones[i];
+            if ((v1.position - center).norm() > 1.5) {
+                continue;
+            }
+            // Collect occlusions
+            vector<int> occluded_neighbours;
             for (int j = 0; j < v1.neighbourIds.size(); ++j) {
                 Milestone &v2 = milestones[v1.neighbourIds[j]];
                 // If this link intersects any observed wall cull it
-                bool does_intersect = cs.does_intersect(room, v1.position, v2.position, 0.1f);
+                bool does_intersect = cs.does_intersect(v1.position, v2.position);
                 if (does_intersect) {
-                    v1.remove_neighbour(v2.id);
-                    v2.remove_neighbour(v1.id);
+                    occluded_neighbours.push_back(v2.id);
                     num_culls++;
                 }
             }
+            // Remove links
+            for (int occluded_neighbour_id: occluded_neighbours) {
+                v1.remove_neighbour(occluded_neighbour_id);
+                milestones[occluded_neighbour_id].remove_neighbour(v1.id);
+            }
         }
         cout << num_culls << " culled\r" << endl;
+        return num_culls;
     }
 
     void add_to_fringe(queue<int>& fringe, Milestone& current, Milestone& next) {
@@ -94,10 +108,10 @@ struct ProbabilisticRoadmap {
         fringe.push(next.id);
     }
 
-    vector<Vector2f> bfs(Vector2f start, Vector2f finish, float edge_len) {
+    vector<Vector2f> bfs(Vector2f start, Vector2f finish, float edge_len, const ConfigurationSpace& cs) {
         // Add these to PRM
-        int start_id = add_milestone(start, edge_len);
-        int finish_id = add_milestone(finish, edge_len);
+        int start_id = add_milestone(start, edge_len, cs);
+        int finish_id = add_milestone(finish, edge_len, cs);
 
         // Reset search state of all milestones
         for (auto& milestone: milestones) {
@@ -180,7 +194,7 @@ struct ProbabilisticRoadmap {
         link_markers.id = 0;
         link_markers.action = visualization_msgs::Marker::ADD;
         link_markers.pose.orientation.w = 1.0;
-        link_markers.color.a = 1.0;
+        link_markers.color.a = 0.2;
         link_markers.type = visualization_msgs::Marker::LINE_LIST;
         link_markers.scale.x = 0.01;
         link_markers.color.r = link_markers.color.g = link_markers.color.b = 1.0f;

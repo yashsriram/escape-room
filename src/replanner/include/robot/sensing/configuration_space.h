@@ -14,27 +14,30 @@ struct ConfigurationSpace {
 	vector<LineSegment> obstacles;
 	explicit ConfigurationSpace() {}
 
-	bool does_intersect(const Room& room, const Vector2f& end1, const Vector2f& end2, float clearance) {
+	void reset_room(const Room& room, float clearance) {
 		obstacles.clear();
-		// Matrix2f rot90CCW;
-		// rot90CCW <<	0, -1, 1, 0;
-		// // Add configuration space obstacles
-		// for (const auto wall : room.walls) {
-		// 	const Vector2f& obs1 = wall.point1;
-		// 	const Vector2f& obs2 = wall.point2;
-		// 	Vector2f wall_parallel = (obs2 - obs1).normalized();
-		// 	Vector2f wall_perpendicular = rot90CCW * wall_parallel;
-		// 	Vector2f top_right = obs2 + clearance * wall_parallel + clearance * wall_perpendicular;
-		// 	Vector2f bottom_right = obs2 + clearance * wall_parallel - clearance * wall_perpendicular;
-		// 	Vector2f top_left = obs1 - clearance * wall_parallel + clearance * wall_perpendicular;
-		// 	Vector2f bottom_left = obs1 - clearance * wall_parallel - clearance * wall_perpendicular;
-		// 	obstacles.push_back(LineSegment(top_left, top_right));
-		// 	obstacles.push_back(LineSegment(bottom_left, bottom_right));
-		// 	obstacles.push_back(LineSegment(top_left, bottom_left));
-		// 	obstacles.push_back(LineSegment(top_right, bottom_right));
-		// }
+		Matrix2f rot90CCW;
+		rot90CCW <<	0, -1, 1, 0;
+		// Add configuration space obstacles
+		for (const auto wall : room.walls) {
+			const Vector2f& obs1 = wall.point1;
+			const Vector2f& obs2 = wall.point2;
+			Vector2f wall_parallel = (obs2 - obs1).normalized();
+			Vector2f wall_perpendicular = rot90CCW * wall_parallel;
+			Vector2f top_right = obs2 + clearance * wall_parallel + clearance * wall_perpendicular;
+			Vector2f bottom_right = obs2 + clearance * wall_parallel - clearance * wall_perpendicular;
+			Vector2f top_left = obs1 - clearance * wall_parallel + clearance * wall_perpendicular;
+			Vector2f bottom_left = obs1 - clearance * wall_parallel - clearance * wall_perpendicular;
+			obstacles.push_back(LineSegment(top_left, top_right));
+			obstacles.push_back(LineSegment(bottom_left, bottom_right));
+			obstacles.push_back(LineSegment(top_left, bottom_left));
+			obstacles.push_back(LineSegment(top_right, bottom_right));
+		}
+	}
+
+	bool does_intersect(const Vector2f& end1, const Vector2f& end2) const {
 		// Check for intersection with any wall
-		for (const LineSegment& wall : room.walls) {
+		for (const LineSegment& wall : obstacles) {
 			const Vector2f& obs1 = wall.point1;
 			const Vector2f& obs2 = wall.point2;
 			// A
