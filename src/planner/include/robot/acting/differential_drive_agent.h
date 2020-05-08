@@ -41,14 +41,41 @@ struct DifferentialDriveAgent {
 
     void update(float dt, const ConfigurationSpace& cs, const vector<Human>& humans) {
         if (current_milestone < path.size() - 1) {
+            // Pull towards next milestone
             Vector2f to_goal = path[current_milestone + 1] - center;
             Vector2f velocity = to_goal.normalized() * linear_speed;
-            Vector2f replusive_momentum(0, 0);
+            // Push from humans
+            Vector2f human_repulsion(0, 0);
+            bool near_humans = false;
             for (int i = 0; i < humans.size(); ++i) {
                 Vector2f from_human = center - humans[i].center;
-                replusive_momentum += from_human.normalized() * pow(from_human.norm(), -2) * 10;
+                human_repulsion += from_human.normalized() * pow(from_human.norm(), -2) * 3;
+                if (from_human.norm() < 2) {
+                    near_humans = true;
+                }
             }
-            Vector2f displacement = (velocity + replusive_momentum) * dt;
+            // Push from walls
+            Vector2f wall_repulsion(0, 0);
+            if (near_humans) {
+                for (int i = 0; i < cs.obstacles.size(); ++i) {
+                    const LineSegment& ls = cs.obstacles[i];
+                    Vector2f p1c = center - ls.point1;
+                    Vector2f p12 = ls.point2 - ls.point1;
+                    Vector2f p12_unit = p12.normalized();
+                    float p12_norm = p12.norm();
+                    float projected_distance = p1c.dot(p12_unit);
+                    // No projection => no force
+                    if (projected_distance < 0 || projected_distance > p12_norm) {
+                        continue;
+                    }
+                    Vector2f perpendicular = p1c - p12_unit * projected_distance;
+                    wall_repulsion += perpendicular.normalized() * pow(perpendicular.norm() + 0.1, -2) * 0.5;
+                }
+                if (wall_repulsion.norm() > 20) {
+                    wall_repulsion = wall_repulsion.normalized() * 20;
+                }
+            }
+            Vector2f displacement = (velocity + human_repulsion + wall_repulsion) * dt;
 
             float goal_orientation = atan2(displacement[1], displacement[0]);
             float to_orientation = goal_orientation - orientation;
@@ -63,7 +90,7 @@ struct DifferentialDriveAgent {
                 return;
             }
             // Next next milestone lookup
-            if (current_milestone < path.size() - 2) {
+            if (!near_humans && current_milestone < path.size() - 2) {
                 bool blocked = cs.does_intersect(center, path[current_milestone + 2]);
                 if (!blocked) {
                     current_milestone++;
