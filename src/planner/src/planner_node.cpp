@@ -7,6 +7,7 @@
 #include "robot/planning/milestone.h"
 #include "robot/planning/probabilistic_roadmap.h"
 #include "robot/acting/differential_drive_agent.h"
+#include "robot/acting/human.h"
 
 using namespace std;
 using namespace ros;
@@ -18,6 +19,7 @@ int main(int argc, char **argv) {
     init(argc, argv, "planner");
     NodeHandle node_handle;
     Publisher rviz = node_handle.advertise<visualization_msgs::Marker>("visualization_marker", 10000);
+    Publisher gazebo = node_handle.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state", 10000);
     Rate rate(20);
 
     Room room(rviz);
@@ -31,7 +33,8 @@ int main(int argc, char **argv) {
     room.add_wall(Vector2f(-3, 0.0), Vector2f(1, 0.0));
     room.add_wall(Vector2f(-1, -1.5), Vector2f(3, -1.5));
 
-    Publisher gazebo = node_handle.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state", 10000);
+    Human human(rviz, gazebo, Vector2f(1, 0), Vector2f(3, 0), 0.3, 1);
+
     DifferentialDriveAgent turtle(rviz, gazebo, Vector2f(2.0, 2.0), PI / 4, 0.2, 5, 10);
 
     ConfigurationSpace cs(rviz, room, turtle.radius + 0.1);
@@ -44,12 +47,14 @@ int main(int argc, char **argv) {
         /* Update */
         for (int i = 0; i < 10; ++i) {
             turtle.update(0.001, cs);
+            human.update(0.001);
         }
         
         /* Draw */
         prm.draw_edges();
         prm.draw_milestones();
         room.draw();
+        human.draw_rviz();
         cs.draw();
         turtle.draw_rviz();
         turtle.draw_path();
