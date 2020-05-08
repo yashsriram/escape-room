@@ -4,6 +4,7 @@
 #include <eigen3/Eigen/Dense>
 #include <ros/ros.h>
 #include "robot/sensing/configuration_space.h"
+#include "robot/acting/human.h"
 
 using namespace std;
 using namespace ros;
@@ -38,10 +39,15 @@ struct DifferentialDriveAgent {
         path = new_path;
     }
 
-    void update(float dt, const ConfigurationSpace& cs) {
+    void update(float dt, const ConfigurationSpace& cs, const Human& human) {
         if (current_milestone < path.size() - 1) {
             Vector2f to_goal = path[current_milestone + 1] - center;
-            float goal_orientation = atan2(to_goal[1], to_goal[0]);
+            Vector2f velocity = to_goal.normalized() * linear_speed;
+            Vector2f from_human = center - human.center;
+            Vector2f replusive_momentum = from_human.normalized() * pow(from_human.norm(), -2) * 10;
+            Vector2f displacement = (velocity + replusive_momentum) * dt;
+
+            float goal_orientation = atan2(displacement[1], displacement[0]);
             float to_orientation = goal_orientation - orientation;
             // Orient towards goal
             if (abs(to_orientation) > ORIENTATION_SLACK) {
@@ -62,8 +68,6 @@ struct DifferentialDriveAgent {
             }
 
             // Move towards next milestone
-            Vector2f velocity_dir = to_goal.normalized();
-            Vector2f displacement = velocity_dir * linear_speed * dt;
             center += displacement;
         }
     }    
