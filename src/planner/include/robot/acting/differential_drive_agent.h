@@ -50,7 +50,7 @@ struct DifferentialDriveAgent {
             for (int i = 0; i < humans.size(); ++i) {
                 Vector2f from_human = center - humans[i].center;
                 human_repulsion += from_human.normalized() * pow(from_human.norm(), -2) * 3;
-                if (from_human.norm() < 2) {
+                if (from_human.norm() < 1.2) {
                     near_humans = true;
                 }
             }
@@ -90,7 +90,7 @@ struct DifferentialDriveAgent {
                 return;
             }
             // Next next milestone lookup
-            if (!near_humans && current_milestone < path.size() - 2) {
+            if (current_milestone < path.size() - 2) {
                 bool blocked = cs.does_intersect(center, path[current_milestone + 2]);
                 if (!blocked) {
                     current_milestone++;

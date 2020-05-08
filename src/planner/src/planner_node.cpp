@@ -34,8 +34,8 @@ int main(int argc, char **argv) {
     room.add_wall(Vector2f(-1, -1.5), Vector2f(3, -1.5));
 
     vector<Human> humans;
-    humans.push_back(Human(rviz, gazebo, Vector2f(1.5, 0), Vector2f(2.5, 0), 0.3, 1));
-    humans.push_back(Human(rviz, gazebo, Vector2f(1, -3.5), Vector2f(3, -3.5), 0.3, 1.5));
+    humans.push_back(Human(rviz, gazebo, Vector2f(1.5, 0), Vector2f(2.5, 0), 0.3, 0.75));
+    humans.push_back(Human(rviz, gazebo, Vector2f(1, -3.5), Vector2f(3, -3.5), 0.3, 1));
 
     DifferentialDriveAgent turtle(rviz, gazebo, Vector2f(2.0, 2.0), PI / 4, 0.2, 10, 20);
 
