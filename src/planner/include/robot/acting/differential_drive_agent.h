@@ -39,12 +39,15 @@ struct DifferentialDriveAgent {
         path = new_path;
     }
 
-    void update(float dt, const ConfigurationSpace& cs, const Human& human) {
+    void update(float dt, const ConfigurationSpace& cs, const vector<Human>& humans) {
         if (current_milestone < path.size() - 1) {
             Vector2f to_goal = path[current_milestone + 1] - center;
             Vector2f velocity = to_goal.normalized() * linear_speed;
-            Vector2f from_human = center - human.center;
-            Vector2f replusive_momentum = from_human.normalized() * pow(from_human.norm(), -2) * 10;
+            Vector2f replusive_momentum(0, 0);
+            for (int i = 0; i < humans.size(); ++i) {
+                Vector2f from_human = center - humans[i].center;
+                replusive_momentum += from_human.normalized() * pow(from_human.norm(), -2) * 10;
+            }
             Vector2f displacement = (velocity + replusive_momentum) * dt;
 
             float goal_orientation = atan2(displacement[1], displacement[0]);

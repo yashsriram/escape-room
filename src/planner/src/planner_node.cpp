@@ -33,7 +33,9 @@ int main(int argc, char **argv) {
     room.add_wall(Vector2f(-3, 0.0), Vector2f(1, 0.0));
     room.add_wall(Vector2f(-1, -1.5), Vector2f(3, -1.5));
 
-    Human human(rviz, gazebo, Vector2f(1, 0), Vector2f(3, 0), 0.3, 2);
+    vector<Human> humans;
+    humans.push_back(Human(rviz, gazebo, Vector2f(3, -4), Vector2f(1, -4), 0.3, 2));
+    humans.push_back(Human(rviz, gazebo, Vector2f(1, 0), Vector2f(3, 0), 0.3, 2));
 
     DifferentialDriveAgent turtle(rviz, gazebo, Vector2f(2.0, 2.0), PI / 4, 0.2, 10, 20);
 
@@ -46,15 +48,19 @@ int main(int argc, char **argv) {
     while (ros::ok()) {
         /* Update */
         for (int i = 0; i < 10; ++i) {
-            turtle.update(0.001, cs, human);
-            human.update(0.001);
+            turtle.update(0.001, cs, humans);
+            for (int j = 0; j < humans.size(); ++j){
+                humans[j].update(0.001);
+            }
         }
         
         /* Draw */
         prm.draw_edges();
         prm.draw_milestones();
         room.draw();
-        human.draw_rviz();
+        for (int j = 0; j < humans.size(); ++j){
+            humans[j].draw_rviz(j);
+        }
         cs.draw();
         turtle.draw_rviz();
         turtle.draw_path();

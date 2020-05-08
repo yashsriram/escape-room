@@ -53,12 +53,12 @@ struct Human {
         center += displacement;
     }    
 
-    void draw_rviz() {
+    void draw_rviz(int id) {
         visualization_msgs::Marker center_marker;
         center_marker.header.frame_id = "/base_scan";
         center_marker.ns = "human";
         center_marker.header.stamp = ros::Time::now();
-        center_marker.id = 0;
+        center_marker.id = id;
         center_marker.type = visualization_msgs::Marker::CYLINDER;
         center_marker.action = visualization_msgs::Marker::ADD;
         center_marker.pose.position.x = center[0];
