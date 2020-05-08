@@ -32,8 +32,8 @@ struct ProbabilisticRoadmap {
         for (uint32_t i = 0; i < num_milestones; ++i) {
             milestones.push_back(Milestone(i, x(gen), y(gen)));
         }
-        // Create links
-        int num_links = 0;
+        // Create edges
+        int num_edges = 0;
         for (int i = 0; i < milestones.size() - 1; ++i) {
             for (int j = i + 1; j < milestones.size(); j++) {
                 Milestone &v1 = milestones[i];
@@ -47,13 +47,13 @@ struct ProbabilisticRoadmap {
                 if (does_intersect) {
                     continue;
                 }
-                // Add link if all okay
+                // Add edge if all okay
                 v1.add_neighbour(v2.id);
                 v2.add_neighbour(v1.id);
-                num_links++;
+                num_edges++;
             }
         }
-        cout << "# links = " << num_links << endl;
+        cout << "# edges = " << num_edges << endl;
     }
 
     int add_milestone(Vector2f position, float edge_len, const ConfigurationSpace& cs) {
@@ -62,7 +62,7 @@ struct ProbabilisticRoadmap {
         // Add milestone
         milestones.push_back(Milestone(id, position[0], position[1]));
         Milestone& new_milestone = milestones[milestones.size() - 1];
-        // Add links to neighbours properly
+        // Add edges to neighbours properly
         for (int i = 0; i < milestones.size() - 1; ++i) {
             Milestone& neighbour = milestones[i];
             // Too far off
@@ -74,7 +74,7 @@ struct ProbabilisticRoadmap {
             if (does_intersect) {
                 continue;
             }
-            // Add link if all okay
+            // Add edge if all okay
             new_milestone.add_neighbour(neighbour.id);
             neighbour.add_neighbour(new_milestone.id);
         }
@@ -168,34 +168,34 @@ struct ProbabilisticRoadmap {
         rviz.publish(milestone_markers);
     }
 
-    void draw_links() {
-        visualization_msgs::Marker link_markers;
-        link_markers.header.frame_id = "/base_scan";
-        link_markers.ns = "links";
-        link_markers.header.stamp = ros::Time::now();
-        link_markers.id = 0;
-        link_markers.action = visualization_msgs::Marker::ADD;
-        link_markers.pose.orientation.w = 1.0;
-        link_markers.color.a = 1.0;
-        link_markers.type = visualization_msgs::Marker::LINE_LIST;
-        link_markers.scale.x = 0.01;
-        link_markers.color.r = link_markers.color.g = link_markers.color.b = 1.0f;
+    void draw_edges() {
+        visualization_msgs::Marker edge_markers;
+        edge_markers.header.frame_id = "/base_scan";
+        edge_markers.ns = "edges";
+        edge_markers.header.stamp = ros::Time::now();
+        edge_markers.id = 0;
+        edge_markers.action = visualization_msgs::Marker::ADD;
+        edge_markers.pose.orientation.w = 1.0;
+        edge_markers.color.a = 1.0;
+        edge_markers.type = visualization_msgs::Marker::LINE_LIST;
+        edge_markers.scale.x = 0.01;
+        edge_markers.color.r = edge_markers.color.g = edge_markers.color.b = 1.0f;
 
-        // Links
+        // edges
         for (const auto &milestone : milestones) {
             for (auto neighbourId: milestone.neighbourIds) {
                 geometry_msgs::Point p1;
                 p1.x = milestone.position[0];
                 p1.y = milestone.position[1];
-                link_markers.points.push_back(p1);
+                edge_markers.points.push_back(p1);
                 geometry_msgs::Point p2;
                 p2.x = milestones[neighbourId].position[0];
                 p2.y = milestones[neighbourId].position[1];
-                link_markers.points.push_back(p2);
+                edge_markers.points.push_back(p2);
             }
         }
 
-        rviz.publish(link_markers);
+        rviz.publish(edge_markers);
     }
 };
 

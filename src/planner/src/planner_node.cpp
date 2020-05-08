@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
         }
         
         /* Draw */
-        prm.draw_links();
+        prm.draw_edges();
         prm.draw_milestones();
         room.draw();
         cs.draw();

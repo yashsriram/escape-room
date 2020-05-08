@@ -60,23 +60,23 @@ struct ConfigurationSpace {
 			// Ax = b
 			Vector2f x = A.inverse() * b;
 
-			// Is intersection b/w link end points?
-			float link_length = (end2 - end1).norm();
-			Vector2f link_unit = (end2 - end1).normalized();
-			Vector2f t_times_link_unit = x - end1;
+			// Is intersection b/w edge end points?
+			float edge_length = (end2 - end1).norm();
+			Vector2f edge_unit = (end2 - end1).normalized();
+			Vector2f t_times_edge_unit = x - end1;
 
 			float t1 = 0;
 			int den = 0;
-			if (abs(link_unit[0]) > 1e-4) {
-				t1 += t_times_link_unit[0] / link_unit[0];
+			if (abs(edge_unit[0]) > 1e-4) {
+				t1 += t_times_edge_unit[0] / edge_unit[0];
 				den++;
 			}
-			if (abs(link_unit[1]) > 1e-4) {
-				t1 += t_times_link_unit[1] / link_unit[1];
+			if (abs(edge_unit[1]) > 1e-4) {
+				t1 += t_times_edge_unit[1] / edge_unit[1];
 				den++;
 			}
 			t1 = t1 / den;
-			if ( t1 < 0 || t1 > link_length ) {
+			if ( t1 < 0 || t1 > edge_length ) {
 				continue;
 			}
 
