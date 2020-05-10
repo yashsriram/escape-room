@@ -119,7 +119,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='skinny_cylinder'>
+      <model name='skinny_cylinder_0'>
         <pose frame=''>1.54946 -6.44817 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -129,7 +129,7 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='skinny_cylinder_0'>
+      <model name='skinny_cylinder_1'>
         <pose frame=''>1.55899 -5.34325 0 0 -0 0</pose>
         <scale>1 1 1</scale>
         <link name='link'>
@@ -508,7 +508,7 @@
       </link>
       <static>1</static>
     </model>
-    <model name='skinny_cylinder'>
+    <model name='skinny_cylinder_0'>
       <link name='link'>
         <inertial>
           <mass>1</mass>
@@ -605,7 +605,7 @@
       <allow_auto_disable>1</allow_auto_disable>
       <pose frame=''>1.54946 -6.44817 0 0 -0 0</pose>
     </model>
-    <model name='skinny_cylinder_0'>
+    <model name='skinny_cylinder_1'>
       <link name='link'>
         <inertial>
           <mass>1</mass>

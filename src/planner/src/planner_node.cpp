@@ -60,6 +60,7 @@ int main(int argc, char **argv) {
         room.draw();
         for (int j = 0; j < humans.size(); ++j){
             humans[j].draw_rviz(j);
+            humans[j].draw_gazebo(j);
         }
         cs.draw();
         turtle.draw_rviz();

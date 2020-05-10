@@ -74,6 +74,18 @@ struct Human {
         rviz.publish(center_marker);
     }
 
+
+    void draw_gazebo(int id) {
+        std::stringstream sstm;
+        sstm << "skinny_cylinder_" << id;
+        gazebo_msgs::ModelState human_state;
+        human_state.model_name = sstm.str();
+        human_state.pose.position.x = center[0];
+        human_state.pose.position.y = center[1];
+        human_state.pose.orientation.w = 1;
+        gazebo.publish(human_state);
+    }
+
 };
 
 #endif
