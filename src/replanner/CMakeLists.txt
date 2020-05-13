@@ -4,8 +4,9 @@ project(replanner)
 add_compile_options(-std=c++11)
 
 find_package(
-        catkin REQUIRED
+        catkin REQUIRED COMPONENTS
         roscpp
+        rospy
         visualization_msgs
         gazebo_msgs
 )
@@ -29,19 +30,13 @@ catkin_package(
 include_directories(
         include
         ../../devel/include
-        # ${catkin_INCLUDE_DIRS}
+        ${catkin_INCLUDE_DIRS}
         /opt/ros/melodic/include
 )
 
 add_executable(
         ${PROJECT_NAME}_node
         src/replanner_node.cpp
-        include/robot/planning/probabilistic_roadmap.h
-        include/robot/planning/milestone.h
-        include/robot/acting/differential_drive_agent.h
-        include/robot/sensing/configuration_space.h
-        include/robot/sensing/line_segment.h
-        include/robot/sensing/room.h
 )
 
 target_link_libraries(

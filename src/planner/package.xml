@@ -3,7 +3,7 @@
   <name>planner</name>
   <version>0.0.0</version>
   <description>The planner package</description>
-  <maintainer email="foo@foo.org">foo</maintainer>
+  <maintainer email="patku001@umn.edu">Yash</maintainer>
   <license>MIT</license>
   <buildtool_depend>catkin</buildtool_depend>
   <export></export>

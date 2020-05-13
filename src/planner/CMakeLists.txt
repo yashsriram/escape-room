@@ -4,27 +4,28 @@ project(planner)
 add_compile_options(-std=c++11)
 
 find_package(
-        catkin REQUIRED
+        catkin REQUIRED COMPONENTS
         roscpp
+        rospy
         visualization_msgs
         gazebo_msgs
 )
 
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES listener
+#  CATKIN_DEPENDS roscpp rospy std_msgs
+#  DEPENDS system_lib
+)
+
 include_directories(
         include
-        # ${catkin_INCLUDE_DIRS}
+        ${catkin_INCLUDE_DIRS}
         /opt/ros/melodic/include
 )
 add_executable(
         ${PROJECT_NAME}_node
         src/planner_node.cpp
-        include/robot/sensing/configuration_space.h
-        include/robot/sensing/line_segment.h
-        include/robot/sensing/room.h
-        include/robot/planning/probabilistic_roadmap.h
-        include/robot/planning/milestone.h
-        include/robot/acting/differential_drive_agent.h
-        include/robot/acting/human.h
 )
 
 target_link_libraries(
