@@ -1,12 +1,12 @@
 <launch>
   <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
-  <arg name="x_pos" default="5.65"/>
-  <arg name="y_pos" default="-2.5"/>
+  <arg name="x_pos" default="0.0"/>
+  <arg name="y_pos" default="0.0"/>
   <arg name="z_pos" default="0.0"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/turtlebot3_zigzag.world"/>
-    <arg name="paused" value="true"/>
+    <arg name="world_name" value="$(find turtlebot3_gazebo)/worlds/zig_zag_empty.world"/>
+    <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="true"/>
     <arg name="headless" value="false"/>
@@ -15,6 +15,25 @@
 
   <param name="robot_description" command="$(find xacro)/xacro --inorder $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro" />
 
-  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model turtlebot3 -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+  <node name="spawn_urdf" pkg="gazebo_ros" type="spawn_model" args="-urdf -model turtlebot3_$(arg model) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description" />
+
+  <node name="replanner_node" pkg="replanner" type="replanner_node" respawn="true" />
+
+  <node name="line_extraction_node" pkg="laser_line_extraction" type="line_extraction_node" respawn="true">
+    <param name="~frequency" value="10.0" />
+    <param name="~frame_id" value="base_scan" />
+    <param name="~scan_topic" value="scan" />
+    <param name="~publish_markers" value="true" />
+    <param name="~bearing_std_dev" value="1e-8" />
+    <param name="~range_std_dev" value="1e-6" />
+    <param name="~least_sq_angle_thresh" value="0.0001" />
+    <param name="~least_sq_radius_thresh" value="0.0001" />
+    <param name="~max_line_gap" value="0.2" />
+    <param name="~min_line_length" value="0.2" />
+    <param name="~min_range" value="0.1" />
+    <param name="~min_split_dist" value="0.04" />
+    <param name="~outlier_dist" value="0.03" />
+    <param name="~min_line_points" value="5" />
+  </node>
 </launch>
 
