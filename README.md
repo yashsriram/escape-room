@@ -12,15 +12,15 @@
 ## usage
 - Open a terminal at project root (the directory containing this file).
 ### Known environment with humans
-`roscore`
-`catkin_make`
-`source devel/setup.bash`
-`roslaunch turtlebot3_gazebo turtlebot3_zigzag_cylinder.launch`
+- `roscore`
+- `catkin_make`
+- `source devel/setup.bash`
+- `roslaunch turtlebot3_gazebo turtlebot3_zigzag_cylinder.launch`
 ### Unknown environment
-`roscore`
-`catkin_make`
-`source devel/setup.bash`
-`roslaunch turtlebot3_gazebo turtlebot3_zigzag.launch`
+- `roscore`
+- `catkin_make`
+- `source devel/setup.bash`
+- `roslaunch turtlebot3_gazebo turtlebot3_zigzag.launch`
 ## demonstration
 A quick showcase of features.
 
