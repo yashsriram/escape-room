@@ -2,8 +2,8 @@
 ## description
 - Simple algorithms for a differential drive robot to autonomously and safely (without colliding into obstacles) escape known/unknown static environments.
 - Dynamic known environments can be managed but safety is not guranteed
-## math
-- Details on core ideas can be found in `report.pdf`
+## roadmap
+- Problems solved until now are documented in `report.pdf`
 ## code
 - The project is a typical ROS project.
 - `planner` and `replanner` contain the core logic, the others are used as libraries.
