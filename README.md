@@ -1,6 +1,6 @@
 # escape-room
 ## description
-- Simple and safe real-time navigation for a differential-drive agent with LIDAR to escape known/unknown static environments.
+- Simple and safe real-time navigation for no-noise differential-drive agent with LIDAR for escaping static environments.
 - Dynamic known environments can be managed but safety is not guranteed.
 ## roadmap
 - Problems solved until now are documented in `report.pdf`
