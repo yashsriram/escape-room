@@ -1,7 +1,7 @@
 # escape-room
 ## description
-- Simple algorithms for a differential drive robot to autonomously and safely (without colliding into obstacles) escape known/unknown static environments.
-- Dynamic known environments can be managed but safety is not guranteed
+- Simple and safe planning algorithms for a differential-drive agent with LIDAR in known/unknown static environments.
+- Dynamic known environments can be managed but safety is not guranteed.
 ## roadmap
 - Problems solved until now are documented in `report.pdf`
 ## code
