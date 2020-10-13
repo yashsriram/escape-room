@@ -6,7 +6,8 @@
 - Problems solved until now are documented in `report.pdf`
 ## code
 - The project is a typical ROS project.
-- `planner` and `replanner` contain the core logic, the others are used as libraries.
+- `src/` contains all source code.
+- `src/planner` and `src/replanner` contain the core logic, the others are used as libraries.
 ## documentation
 - For most of the code, the documentation is itself.
 ## usage
